@@ -1,0 +1,60 @@
+{
+  "success": true,
+  "totalUsers": 6,
+  "users": [
+    {
+      "userId": "0fc4b2e8-deb8-4275-bebd-cfd8541b3362",
+      "firstName": "Emad",
+      "lastName": "Ramadan",
+      "email": "hem@gmail.com",
+      "role": "PetOwner",
+      "accountStatus": "Approved",
+      "createdAt": "2026-04-16T11:30:02.083859"
+    },
+    {
+      "userId": "88961e4d-2a7d-4cdf-afce-4903187e65ba",
+      "firstName": "Khaled",
+      "lastName": "AHmed",
+      "email": "hoem@gmail.com",
+      "role": "PetOwner",
+      "accountStatus": "Approved",
+      "createdAt": "2026-04-16T11:30:23.3427526"
+    },
+    {
+      "userId": "9fd16b41-b769-40a8-b0ea-b6a4a41e987c",
+      "firstName": "Batrek",
+      "lastName": "ali",
+      "email": "oneiron275@gmail.com",
+      "role": "PetOwner",
+      "accountStatus": "Approved",
+      "createdAt": "2026-04-16T11:02:53.7600344"
+    },
+    {
+      "userId": "a566ad49-9a42-4cd1-8ab1-db45a91142de",
+      "firstName": "nader",
+      "lastName": "hamamd",
+      "email": "hllem@gmail.com",
+      "role": "PetOwner",
+      "accountStatus": "Approved",
+      "createdAt": "2026-04-16T11:30:49.8751662"
+    },
+    {
+      "userId": "b5a96dd4-f8df-41d4-9668-4b53d5c8f1e5",
+      "firstName": "AlyEldeen",
+      "lastName": "Mohseen",
+      "email": "him@gmail.com",
+      "role": "PetOwner",
+      "accountStatus": "Approved",
+      "createdAt": "2026-04-16T11:29:31.2010051"
+    },
+    {
+      "userId": "bc1ce951-d7c5-4c1a-9a3b-d143bf58939c",
+      "firstName": "Tarek",
+      "lastName": "Dibba",
+      "email": "metarek257@gmail.com",
+      "role": "Admin",
+      "accountStatus": "Approved",
+      "createdAt": "2026-04-16T10:47:38.6329743"
+    }
+  ]
+}
