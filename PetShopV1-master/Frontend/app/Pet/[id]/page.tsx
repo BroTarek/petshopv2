@@ -45,7 +45,9 @@ const PetDetailPage = () => {
                         status: petData.status || petData.Status,
                         ownerId: petData.ownerId || petData.OwnerId,
                         ownerName: petData.ownerName || petData.OwnerName,
-                        images: petData.images || petData.Images || []
+                        images: (petData.images || petData.Images || []).map((img: string) => 
+                          img.startsWith('http') ? img : `http://localhost:5000/${img}`
+                        )
                     };
                     setPet(normalizedPet);
 

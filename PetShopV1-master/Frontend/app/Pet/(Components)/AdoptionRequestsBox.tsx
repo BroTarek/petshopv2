@@ -17,7 +17,19 @@ export default function AdoptionRequestsBox({ petOwnerId }: { petOwnerId?: strin
   useEffect(() => {
     if (!ownerId) { setLoading(false); return; }
     api.get(`/Adoption/user/${ownerId}/received`)
-      .then(r => setRequests(Array.isArray(r.data) ? r.data : []))
+      .then(r => {
+        const pts = Array.isArray(r.data) ? r.data : [];
+        const normalized = pts.map((req: any) => ({
+          requestId: req.requestId || req.RequestId || req.id || req.Id,
+          petId: req.petId || req.PetId,
+          petName: req.petName || req.PetName,
+          status: req.status || req.Status,
+          initiatorId: req.initiatorId || req.InitiatorId,
+          initiatorName: req.initiatorName || req.InitiatorName,
+          requestDate: req.requestDate || req.RequestDate
+        }));
+        setRequests(normalized);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [ownerId]);

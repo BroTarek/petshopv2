@@ -18,11 +18,11 @@ public class PetController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> CreatePet([FromForm] CreatePetRequest request, [FromForm] List<IFormFile> images)
+    public async Task<IActionResult> CreatePet([FromForm] CreatePetRequest request)
     {
         try
         {
-            var pet = await _petService.CreatePetAsync(request, images);
+            var pet = await _petService.CreatePetAsync(request, request.Images?.ToList() ?? new List<IFormFile>());
             
             return Ok(new
             {
@@ -47,11 +47,11 @@ public class PetController : ControllerBase
     }
 
     [HttpPut("update/{petId}")]
-    public async Task<IActionResult> UpdatePet(string petId, [FromForm] UpdatePetRequest request, [FromForm] List<IFormFile>? images = null)
+    public async Task<IActionResult> UpdatePet(string petId, [FromForm] UpdatePetRequest request)
     {
         try
         {
-            var pet = await _petService.UpdatePetAsync(petId, request, images);
+            var pet = await _petService.UpdatePetAsync(petId, request, request.Images?.ToList());
             
             return Ok(new
             {

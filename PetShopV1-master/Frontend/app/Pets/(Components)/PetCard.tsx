@@ -21,6 +21,7 @@ type PetCardProps = {
 }
 
 const PetCard = ({ Props }: PetCardProps) => {
+    const [isFav, setIsFav] = React.useState(false);
     return (
         <div className="group relative bg-surface-container-lowest rounded-lg overflow-hidden flex flex-col transition-all duration-300 hover:shadow-editorial-hover">
             <div className="relative h-80 overflow-hidden bg-slate-100 flex items-center justify-center">
@@ -38,8 +39,17 @@ const PetCard = ({ Props }: PetCardProps) => {
                         {Props.tag}
                     </span>
                 </div>
-                <button className="absolute bottom-4 right-4 bg-surface text-primary p-3 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity translate-y-4 group-hover:translate-y-0 hover:bg-red-50 hover:text-red-500">
-                    <span className="material-symbols-outlined">favorite</span>
+                <button 
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsFav(!isFav);
+                    }}
+                    className={`absolute bottom-4 right-4 bg-surface p-3 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all translate-y-4 group-hover:translate-y-0 hover:scale-110 ${isFav ? 'text-red-500' : 'text-primary hover:text-red-500'}`}
+                >
+                    <span className="material-symbols-outlined" style={{ fontVariationSettings: isFav ? "'FILL' 1" : "'FILL' 0" }}>
+                        favorite
+                    </span>
                 </button>
             </div>
             <div className="p-8 flex-1 flex flex-col">

@@ -1,5 +1,7 @@
 using PetShop.BackendV2.Domain.Entities;
 using PetShop.BackendV2.Domain.Interfaces.Repositories;
+using PetShop.BackendV2.Domain.Interfaces.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace PetShop.BackendV2.Application.Services;
 
@@ -8,36 +10,50 @@ public class PostService
     private readonly IPostRepository _postRepository;
     private readonly IUserRepository _userRepository;
     private readonly IPetRepository _petRepository;
+    private readonly IFileService _fileService;
 
     public PostService(
         IPostRepository postRepository,
         IUserRepository userRepository,
-        IPetRepository petRepository)
+        IPetRepository petRepository,
+        IFileService fileService)
     {
         _postRepository = postRepository;
         _userRepository = userRepository;
         _petRepository = petRepository;
+        _fileService = fileService;
     }
 
-    public async Task<Post> CreatePostAsync(CreatePostRequest request)
+    public async Task<Post> CreatePostAsync(CreatePostRequest request, IFormFile? image = null)
     {
         // Validate user exists
         var user = await _userRepository.GetByIdAsync(request.UserId);
         if (user == null)
             throw new KeyNotFoundException($"User with ID {request.UserId} not found");
         
-        // Validate pet exists and belongs to user
-        var pet = await _petRepository.GetByIdAsync(request.PetId);
-        if (pet == null)
-            throw new KeyNotFoundException($"Pet with ID {request.PetId} not found");
-        
-        if (pet.OwnerId != request.UserId)
-            throw new UnauthorizedAccessException("You can only create posts for your own pets");
-        
-        // Check if pet already has an active post
-        var existingPosts = await _postRepository.GetPostsByPetIdAsync(request.PetId);
-        if (existingPosts.Any(p => p.IsActive))
-            throw new InvalidOperationException("This pet already has an active post");
+        Pet? pet = null;
+        if (!string.IsNullOrEmpty(request.PetId))
+        {
+            // Validate pet exists and belongs to user
+            pet = await _petRepository.GetByIdAsync(request.PetId);
+            if (pet == null)
+                throw new KeyNotFoundException($"Pet with ID {request.PetId} not found");
+            
+            if (pet.OwnerId != request.UserId)
+                throw new UnauthorizedAccessException("You can only create posts for your own pets");
+            
+            // Check if pet already has an active post
+            var existingPosts = await _postRepository.GetPostsByPetIdAsync(request.PetId);
+            if (existingPosts.Any(p => p.IsActive))
+                throw new InvalidOperationException("This pet already has an active post");
+        }
+
+        string imageUrl = string.Empty;
+        if (image != null)
+        {
+            using var stream = image.OpenReadStream();
+            imageUrl = await _fileService.UploadFileAsync(stream, image.FileName, "posts");
+        }
         
         // Create post
         var post = new Post
@@ -46,8 +62,9 @@ public class PostService
             Title = request.Title,
             Description = request.Description,
             Content = request.Content,
+            ImageUrl = imageUrl,
             PetId = request.PetId,
-            Pet = pet,
+            Pet = pet!,
             UserId = request.UserId,
             User = user,
             CreationDate = DateTime.UtcNow,

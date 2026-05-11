@@ -8,6 +8,7 @@ public class FavouriteResponseVM
     public string PostId { get; set; } = string.Empty;
     public string PetName { get; set; } = string.Empty;
     public string PetImageUrl { get; set; } = string.Empty;
+    public string PostImageUrl { get; set; } = string.Empty;
     public DateTime FavouritedAt { get; set; }
     
     // Post details

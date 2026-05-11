@@ -15,7 +15,21 @@ const PostsPage = () => {
             try {
                 const response = await api.get('/Post/all');
                 if (response.data && response.data.Success) {
-                    setPosts(response.data.Posts);
+                    const normalized = (response.data.Posts || []).map((p: any) => ({
+                        ...p,
+                        postId: p.postId || p.PostId || p.id || p.Id,
+                        title: p.title || p.Title,
+                        description: p.description || p.Description,
+                        content: p.content || p.Content,
+                        petId: p.petId || p.PetId,
+                        petName: p.petName || p.PetName,
+                        petImageUrl: p.petImageUrl || p.PetImageUrl,
+                        userName: p.userName || p.UserName,
+                        userId: p.userId || p.UserId,
+                        creationDate: p.creationDate || p.CreationDate,
+                        favouriteCount: p.favouriteCount || p.FavouriteCount
+                    }));
+                    setPosts(normalized);
                 }
             } catch (err) {
                 console.error("Failed to fetch posts", err);

@@ -17,11 +17,11 @@ public class PostController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> CreatePost([FromBody] CreatePostRequest request)
+    public async Task<IActionResult> CreatePost([FromForm] CreatePostRequest request, IFormFile? image)
     {
         try
         {
-            var post = await _postService.CreatePostAsync(request);
+            var post = await _postService.CreatePostAsync(request, image);
             
             return Ok(new
             {
@@ -122,6 +122,7 @@ public class PostController : ControllerBase
                 PetName = post.Pet?.Name ?? "Unknown",
                 PetImageUrl = post.Pet?.Images.FirstOrDefault() ?? string.Empty,
                 PetBreed = post.Pet?.Breed ?? string.Empty,
+                ImageUrl = post.ImageUrl,
                 UserId = post.UserId,
                 UserName = $"{post.User?.FirstName} {post.User?.LastName}",
                 UserEmail = post.User?.Email ?? string.Empty,
@@ -159,6 +160,7 @@ public class PostController : ControllerBase
                 PetId = post.PetId,
                 PetName = post.Pet?.Name ?? "Unknown",
                 PetImageUrl = post.Pet?.Images.FirstOrDefault() ?? string.Empty,
+                ImageUrl = post.ImageUrl,
                 UserId = post.UserId,
                 UserName = $"{post.User?.FirstName} {post.User?.LastName}",
                 CreationDate = post.CreationDate,
@@ -238,6 +240,7 @@ public class PostController : ControllerBase
                 PetId = post.PetId,
                 PetName = post.Pet?.Name ?? "Unknown",
                 PetImageUrl = post.Pet?.Images.FirstOrDefault() ?? string.Empty,
+                ImageUrl = post.ImageUrl,
                 UserId = post.UserId,
                 UserName = $"{post.User?.FirstName} {post.User?.LastName}",
                 CreationDate = post.CreationDate,

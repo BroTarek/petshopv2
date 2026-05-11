@@ -7,6 +7,7 @@ export default function SettingsTab({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
+  const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,13 +36,24 @@ export default function SettingsTab({ userId }: { userId: string }) {
         {[['currentPassword', 'Current Password'], ['newPassword', 'New Password'], ['confirmPassword', 'Confirm New Password']].map(([key, label]) => (
           <div key={key}>
             <label className="block text-sm font-bold text-slate-700 mb-1">{label}</label>
-            <input
-              type="password"
-              value={(form as any)[key]}
-              onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-              required
-              className="w-full border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 text-sm"
-            />
+            <div className="relative">
+              <input
+                type={showPasswords[key] ? 'text' : 'password'}
+                value={(form as any)[key]}
+                onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                required
+                className="w-full border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 text-sm text-black"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPasswords(prev => ({ ...prev, [key]: !prev[key] }))}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  {showPasswords[key] ? 'visibility_off' : 'visibility'}
+                </span>
+              </button>
+            </div>
           </div>
         ))}
         <button type="submit" disabled={loading}

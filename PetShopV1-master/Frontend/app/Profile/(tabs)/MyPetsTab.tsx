@@ -19,8 +19,23 @@ export default function MyPetsTab({ userId }: { userId: string }) {
     api.get(`/Pet/owner/${userId}`)
       .then(r => {
         const ok = r.data.Success || r.data.success;
-        const pets = r.data.Pets || r.data.pets;
-        if (ok) setPets(pets || []);
+        const pts = r.data.Pets || r.data.pets || [];
+        if (ok) {
+          const normalized = pts.map((p: any) => ({
+            petId: p.petId || p.PetId || p.id || p.Id,
+            name: p.name || p.Name,
+            breed: p.breed || p.Breed,
+            type: p.type || p.Type,
+            age: p.age || p.Age,
+            status: p.status || p.Status,
+            primaryImage: p.primaryImage || p.PrimaryImage 
+              ? ( (p.primaryImage || p.PrimaryImage).startsWith('http') ? (p.primaryImage || p.PrimaryImage) : `http://localhost:5000/${p.primaryImage || p.PrimaryImage}` )
+              : (p.images && p.images[0]) || (p.Images && p.Images[0])
+                ? ( ((p.images && p.images[0]) || (p.Images && p.Images[0])).startsWith('http') ? ((p.images && p.images[0]) || (p.Images && p.Images[0])) : `http://localhost:5000/${(p.images && p.images[0]) || (p.Images && p.Images[0])}` )
+                : ''
+          }));
+          setPets(normalized);
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -71,12 +86,14 @@ export default function MyPetsTab({ userId }: { userId: string }) {
       fd.append('Description', form.description);
       fd.append('OwnerId', userId);
       
-      if (images) Array.from(images).forEach(f => fd.append('images', f));
+      if (images) Array.from(images).forEach(f => fd.append('Images', f));
+      
+      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
       
       if (editPet) {
-        await api.put(`/Pet/update/${editPet.petId}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        await api.put(`/Pet/update/${editPet.petId}`, fd, config);
       } else {
-        await api.post('/Pet/create', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        await api.post('/Pet/create', fd, config);
       }
       setShowModal(false); 
       load();
@@ -143,6 +160,8 @@ export default function MyPetsTab({ userId }: { userId: string }) {
               <div key={k}>
                 <label className="block text-xs font-bold text-slate-600 mb-1">{label}</label>
                 <input value={(form as any)[k]} onChange={e => setForm(f => ({...f, [k]: e.target.value}))}
+                  type={k === 'age' ? 'number' : 'text'}
+                  min={k === 'age' ? '0' : undefined}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 text-slate-800" />
               </div>
             ))}
@@ -165,8 +184,36 @@ export default function MyPetsTab({ userId }: { userId: string }) {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Images</label>
-              <input type="file" multiple accept="image/*" onChange={e => setImages(e.target.files)} className="text-sm text-slate-600" />
+              <label className="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-tighter">Pet Gallery (Required)</label>
+              <div className="relative group">
+                <input 
+                  type="file" 
+                  multiple 
+                  accept="image/*" 
+                  onChange={e => setImages(e.target.files)} 
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                />
+                <div className={`border-2 border-dashed rounded-2xl p-8 transition-all duration-300 flex flex-col items-center justify-center gap-3 ${images && images.length > 0 ? 'border-blue-400 bg-blue-50/30' : 'border-slate-200 bg-slate-50 group-hover:border-blue-400 group-hover:bg-blue-50/50'}`}>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${images && images.length > 0 ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                    <span className="material-symbols-outlined">{images && images.length > 0 ? 'check_circle' : 'add_photo_alternate'}</span>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-slate-700">
+                      {images && images.length > 0 ? `${images.length} Photos Selected` : 'Click or Drag to Upload'}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 10MB</p>
+                  </div>
+                </div>
+              </div>
+              {images && images.length > 0 && (
+                <div className="mt-2 flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                  {Array.from(images).map((f, i) => (
+                    <div key={i} className="flex-shrink-0 w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] text-slate-500 overflow-hidden font-mono">
+                      IMG_{i+1}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="flex gap-3 pt-2">
               <button onClick={save} disabled={saving} className="flex-1 bg-blue-600 text-white py-2 rounded-xl font-bold hover:bg-blue-700 transition disabled:opacity-50">

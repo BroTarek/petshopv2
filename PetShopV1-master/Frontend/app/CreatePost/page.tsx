@@ -13,6 +13,7 @@ export default function CreatePostPage() {
         description: '',
         content: ''
     });
+    const [image, setImage] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [myPets, setMyPets] = useState<any[]>([]);
@@ -54,11 +55,15 @@ export default function CreatePostPage() {
         setLoading(true);
 
         try {
-            const body = {
-                ...formData,
-                userId: userId
-            };
-            const response = await api.post('/Post/create', body);
+            const fd = new FormData();
+            fd.append('UserId', userId);
+            fd.append('PetId', formData.petId);
+            fd.append('Title', formData.title);
+            fd.append('Description', formData.description);
+            fd.append('Content', formData.content);
+            if (image) fd.append('image', image);
+
+            const response = await api.post('/Post/create', fd);
             
             const ok = response.data.Success || response.data.success;
             if (ok) {
@@ -115,6 +120,29 @@ export default function CreatePostPage() {
                                     <option key={pet.petId} value={pet.petId}>{pet.name} ({pet.breed})</option>
                                 ))}
                             </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Post Photo (Optional)</label>
+                            <div className="relative group">
+                                <input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    onChange={e => setImage(e.target.files ? e.target.files[0] : null)} 
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                                />
+                                <div className={`border-2 border-dashed rounded-2xl p-8 transition-all duration-300 flex flex-col items-center justify-center gap-3 ${image ? 'border-blue-400 bg-blue-50/30' : 'border-slate-200 bg-slate-50 group-hover:border-blue-400 group-hover:bg-blue-50/50'}`}>
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${image ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                        <span className="material-symbols-outlined">{image ? 'check_circle' : 'add_photo_alternate'}</span>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-sm font-bold text-slate-700">
+                                            {image ? image.name : 'Click or Drag to Upload'}
+                                        </p>
+                                        <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 10MB</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div>

@@ -193,6 +193,7 @@ export default function DashboardPage() {
     setCurrentUser(u);
     setIsAdmin(u.Role === 'Admin' || u.role === 'Admin');
 
+    let isMounted = true;
     const conn = new HubConnectionBuilder()
       .withUrl('http://localhost:5000/hubs/adoption', {
         skipNegotiation: true,
@@ -215,15 +216,31 @@ export default function DashboardPage() {
       ['RequestUpdate', '🔄 [Update]', 'info'],
     ];
     events.forEach(([evt, prefix, type]) => {
-      conn.on(evt, (data: AdoptionUpdate) => addLog(`${prefix} ${data.message}`, type));
+      conn.on(evt, (data: AdoptionUpdate) => {
+        if (isMounted) addLog(`${prefix} ${data.message}`, type);
+      });
     });
 
     setStatus('connecting');
     conn.start()
-      .then(() => { setStatus('connected'); addLog('🟢 SignalR: Connected', 'success'); })
-      .catch(err => { setStatus('error'); addLog(`🔴 SignalR failed: ${err}`, 'error'); });
+      .then(() => { 
+        if (isMounted) {
+          setStatus('connected'); 
+          addLog('🟢 SignalR: Connected', 'success'); 
+        }
+      })
+      .catch(err => { 
+        if (isMounted) {
+          setStatus('error'); 
+          addLog(`🔴 SignalR: Offline (Updates via refresh only)`, 'warning');
+        }
+      });
+
     setConnection(conn);
-    return () => { conn.stop(); };
+    return () => { 
+      isMounted = false;
+      conn.stop().catch(() => {}); // Safely stop without throwing
+    };
   }, [router]);
 
   const handleAction = async (path: string, method = 'POST', body?: any) => {
@@ -363,7 +380,12 @@ export default function DashboardPage() {
                     <p className="text-[10px] text-slate-500">To: {req.receiverName}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${req.status === 'Accepted' ? 'bg-green-100 text-green-700' : req.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
+                      (req.status === 'Accepted' || req.status === 'Approved') ? 'bg-green-100 text-green-700' : 
+                      req.status === 'Rejected' ? 'bg-red-100 text-red-700' : 
+                      req.status === 'Cancelled' ? 'bg-slate-100 text-slate-500' : 
+                      'bg-amber-100 text-amber-700'
+                    }`}>
                       {req.status}
                     </span>
                     <button onClick={() => { setRequestId(req.requestId); joinGroup(); }} className="text-[10px] text-blue-600 hover:underline">Track Live</button>
@@ -389,7 +411,12 @@ export default function DashboardPage() {
                     <p className="text-[10px] text-slate-500">From: {req.initiatorName}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${req.status === 'Accepted' ? 'bg-green-100 text-green-700' : req.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
+                      (req.status === 'Accepted' || req.status === 'Approved') ? 'bg-green-100 text-green-700' : 
+                      req.status === 'Rejected' ? 'bg-red-100 text-red-700' : 
+                      req.status === 'Cancelled' ? 'bg-slate-100 text-slate-500' : 
+                      'bg-amber-100 text-amber-700'
+                    }`}>
                       {req.status}
                     </span>
                     <button onClick={() => { setRequestId(req.requestId); joinGroup(); }} className="text-[10px] text-blue-600 hover:underline">Manage Live</button>

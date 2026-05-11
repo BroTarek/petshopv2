@@ -9,20 +9,27 @@ import SidebarFilters from './(Components)/SidebarFilters';
 import { STAGES } from './(Components)/AgeRange';
 import api from '@/utils/axios';
 
-const mapPet = (backendPet: any) => ({
-  id: backendPet.PetId || backendPet.petId || backendPet.Id || backendPet.id,
-  name: backendPet.Name || backendPet.name,
-  image: {
-    alt: backendPet.Name || backendPet.name,
-    url: backendPet.PrimaryImage || backendPet.primaryImage || 'https://placehold.co/600x400/e2e8f0/64748b?text=No+Photo',
-  },
-  tag: backendPet.Breed || backendPet.breed || backendPet.Type || backendPet.type,
-  age: backendPet.Age || backendPet.age,
-  gender: backendPet.Gender || 'Unknown',
-  size: 'Medium',
-  status: backendPet.Status || backendPet.status,
-  description: `Located in ${backendPet.Location || backendPet.location}. Owned by ${backendPet.OwnerName || backendPet.ownerName}`,
-});
+const mapPet = (backendPet: any) => {
+  const rawImage = backendPet.PrimaryImage || backendPet.primaryImage || '';
+  const imageUrl = rawImage 
+    ? (rawImage.startsWith('http') ? rawImage : `http://localhost:5000/${rawImage}`)
+    : 'https://placehold.co/600x400/e2e8f0/64748b?text=No+Photo';
+
+  return {
+    id: backendPet.PetId || backendPet.petId || backendPet.Id || backendPet.id,
+    name: backendPet.Name || backendPet.name,
+    image: {
+      alt: backendPet.Name || backendPet.name,
+      url: imageUrl,
+    },
+    tag: backendPet.Breed || backendPet.breed || backendPet.Type || backendPet.type,
+    age: backendPet.Age || backendPet.age,
+    gender: backendPet.Gender || 'Unknown',
+    size: 'Medium',
+    status: backendPet.Status || backendPet.status,
+    description: `Located in ${backendPet.Location || backendPet.location}. Owned by ${backendPet.OwnerName || backendPet.ownerName}`,
+  };
+};
 
 const PetsPage = () => {
   const [pets, setPets] = useState<any[]>([]);

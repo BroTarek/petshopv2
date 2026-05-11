@@ -212,6 +212,7 @@ public class FavouriteController : ControllerBase
                 PostId = f.PostId,
                 PetName = f.Post?.Pet?.Name ?? "Unknown",
                 PetImageUrl = f.Post?.Pet?.Images.FirstOrDefault() ?? string.Empty,
+                PostImageUrl = f.Post?.ImageUrl ?? string.Empty,
                 FavouritedAt = f.CreatedAt,
                 PostTitle = f.Post?.Title ?? string.Empty,
                 PostContent = f.Post?.Content ?? string.Empty

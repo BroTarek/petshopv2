@@ -166,6 +166,7 @@ if (app.Environment.IsDevelopment())
 
 // app.UseHttpsRedirection(); // Disabled because inside Docker, SSL termination is handled by proxy
 app.UseCors("AllowAll");
+app.UseStaticFiles();
 
 // Authentication/Authorization MUST come before endpoint mapping so that
 // [Authorize] on AdoptionHub is enforced when clients first connect.

@@ -243,6 +243,7 @@ public class CreatePetRequest
     public string Location { get; set; } = string.Empty;
     public HealthStatus HealthStatus { get; set; }
     public string Description { get; set; } = string.Empty;
+    public Microsoft.AspNetCore.Http.IFormFileCollection? Images { get; set; }
 }
 
 public class UpdatePetRequest
@@ -257,6 +258,7 @@ public class UpdatePetRequest
     public HealthStatus? HealthStatus { get; set; }
     public string? Description { get; set; }
     public PetStatus? Status { get; set; }
+    public Microsoft.AspNetCore.Http.IFormFileCollection? Images { get; set; }
 }
 
 public class PetSearchRequest

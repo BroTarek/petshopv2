@@ -9,7 +9,21 @@ type PostProps = {
   onDeleted?: (postId: string) => void;
 };
 
-const Post = ({ post, onDeleted }: PostProps) => {
+const Post = ({ post: rawPost, onDeleted }: PostProps) => {
+  const post = {
+    postId: rawPost.postId || rawPost.PostId || rawPost.id || rawPost.Id,
+    userId: rawPost.userId || rawPost.UserId,
+    userName: rawPost.userName || rawPost.UserName,
+    title: rawPost.title || rawPost.Title,
+    description: rawPost.description || rawPost.Description,
+    content: rawPost.content || rawPost.Content,
+    petId: rawPost.petId || rawPost.PetId,
+    petName: rawPost.petName || rawPost.PetName,
+    petImageUrl: rawPost.petImageUrl || rawPost.PetImageUrl,
+    creationDate: rawPost.creationDate || rawPost.CreationDate,
+    favouriteCount: rawPost.favouriteCount || rawPost.FavouriteCount,
+  };
+
   const [isFav, setIsFav] = useState(false);
   const [favId, setFavId] = useState<string | null>(null);
   const [favLoading, setFavLoading] = useState(false);
@@ -117,8 +131,14 @@ const Post = ({ post, onDeleted }: PostProps) => {
         <div className="relative group">
           <div className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory">
             <div className="flex-shrink-0 w-full aspect-[4/5] snap-center bg-slate-100 flex items-center justify-center">
-              {post.petImageUrl ? (
-                <img className="w-full h-full object-cover" src={post.petImageUrl} alt={post.petName} />
+              {post.imageUrl || post.petImageUrl ? (
+                <img 
+                  className="w-full h-full object-cover" 
+                  src={(post.imageUrl || post.petImageUrl).startsWith('http') 
+                    ? (post.imageUrl || post.petImageUrl) 
+                    : `http://localhost:5000/${post.imageUrl || post.petImageUrl}`} 
+                  alt={post.petName || post.title} 
+                />
               ) : (
                 <span className="text-slate-400 font-medium">No image available</span>
               )}
