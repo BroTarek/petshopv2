@@ -12,10 +12,11 @@ export default function RegisterPage() {
         lastName: '',
         email: '',
         password: '',
-        role: 1 // Adopter role by default based on DTO Enum mapping (assuming 0 might be Admin/shelter?) fallback to int
+        role: 1
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [emailError, setEmailError] = useState('');
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -23,6 +24,18 @@ export default function RegisterPage() {
             ...prev,
             [name]: name === 'role' ? parseInt(value) : value
         }));
+    };
+
+    const checkEmail = async () => {
+        if (!formData.email) return;
+        try {
+            const res = await api.get(`/Auth/check-email?email=${encodeURIComponent(formData.email)}`);
+            if (res.data.Exists) {
+                setEmailError('This email is already registered.');
+            } else {
+                setEmailError('');
+            }
+        } catch {}
     };
 
     const handleRegister = async (e: React.FormEvent) => {
@@ -124,9 +137,11 @@ export default function RegisterPage() {
                                     required
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className="appearance-none block w-full px-3 py-3 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    onBlur={checkEmail}
+                                    className={`appearance-none block w-full px-3 py-3 border rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 sm:text-sm ${emailError ? 'border-red-400 focus:border-red-400' : 'border-slate-300 focus:border-indigo-500'}`}
                                     placeholder="you@example.com"
                                 />
+                                {emailError && <p className="mt-1 text-xs text-red-600">{emailError}</p>}
                             </div>
                         </div>
 

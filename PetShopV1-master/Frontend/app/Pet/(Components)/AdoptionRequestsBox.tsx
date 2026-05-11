@@ -1,87 +1,81 @@
-import React from 'react'
+'use client';
+import React, { useEffect, useState } from 'react';
+import api from '@/utils/axios';
 
-const AdoptionRequestsBox = () => {
+export default function AdoptionRequestsBox({ petOwnerId }: { petOwnerId?: string }) {
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const ownerId = petOwnerId || (() => {
+    if (typeof window === 'undefined') return '';
+    const s = localStorage.getItem('user');
+    if (!s) return '';
+    const u = JSON.parse(s);
+    return u.UserId || u.userId || u.Id || u.id || '';
+  })();
+
+  useEffect(() => {
+    if (!ownerId) { setLoading(false); return; }
+    api.get(`/Adoption/user/${ownerId}/received`)
+      .then(r => setRequests(Array.isArray(r.data) ? r.data : []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [ownerId]);
+
+  const act = async (requestId: string, action: 'accept' | 'reject') => {
+    try {
+      await api.put(`/Adoption/${requestId}/${action}`);
+      setRequests(prev => prev.map(r => r.requestId === requestId ? { ...r, status: action === 'accept' ? 'Accepted' : 'Rejected' } : r));
+    } catch { alert(`Failed to ${action}.`); }
+  };
+
+  const statusColor: Record<string, string> = {
+    Pending: 'bg-yellow-100 text-yellow-700',
+    Accepted: 'bg-green-100 text-green-700',
+    Rejected: 'bg-red-100 text-red-700',
+  };
+
   return (
-    <>
-    
-                <div className="lg:col-span-4 h-full">
-                    <div
-                        className="bg-surface-container-low rounded-lg p-8 border border-outline-variant/10 h-full flex flex-col">
-                        <div className="flex justify-between items-center mb-8">
-                            <h3 className="text-2xl font-extrabold font-headline tracking-tight">Interest List</h3>
-                            <span className="bg-secondary text-on-secondary px-3 py-1 rounded-full text-xs font-bold">4
-                                Active</span>
-                        </div>
-                        <div className="space-y-6 overflow-y-auto pr-2 max-h-[400px] hide-scrollbar">
-                            {/* <!-- Request 1 --> */}
-                            <div
-                                className="flex items-center gap-4 bg-surface-container-lowest p-4 rounded-xl border border-transparent hover:border-secondary transition-all">
-                                <img alt="Avatar" className="w-12 h-12 rounded-full object-cover"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-pM_lD6jS0lU8o_p-2wJgS3-Tf4_S06ZqU_Vz0D1lZ7s_Xo-1gU6_Vv9w3lW4w4w4w4w4w4w4w4w4w4w4" />
-                                <div className="flex-grow">
-                                    <h4 className="font-bold text-sm">Eleanor Vance</h4>
-                                    <p className="text-xs text-on-surface-variant">Requested Oct 24, 2023</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-black text-secondary">0</p>
-                                    <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-tighter">
-                                        Pets</p>
-                                </div>
-                            </div>
-                            {/* <!-- Request 2 --> */}
-                            <div
-                                className="flex items-center gap-4 bg-surface-container-lowest p-4 rounded-xl border border-transparent hover:border-secondary transition-all">
-                                <img alt="Avatar" className="w-12 h-12 rounded-full object-cover"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-pM_lD6jS0lU8o_p-2wJgS3-Tf4_S06ZqU_Vz0D1lZ7s_Xo-1gU6_Vv9w3lW4w4w4w4w4w4w4w4w4w4w4" />
-                                <div className="flex-grow">
-                                    <h4 className="font-bold text-sm">Marcus Chen</h4>
-                                    <p className="text-xs text-on-surface-variant">Requested Oct 22, 2023</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-black text-secondary">2</p>
-                                    <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-tighter">
-                                        Pets</p>
-                                </div>
-                            </div>
-                            {/* <!-- Request 3 --> */}
-                            <div
-                                className="flex items-center gap-4 bg-surface-container-lowest p-4 rounded-xl border border-transparent hover:border-secondary transition-all">
-                                <img alt="Avatar" className="w-12 h-12 rounded-full object-cover"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-pM_lD6jS0lU8o_p-2wJgS3-Tf4_S06ZqU_Vz0D1lZ7s_Xo-1gU6_Vv9w3lW4w4w4w4w4w4w4w4w4w4w4" />
-                                <div className="flex-grow">
-                                    <h4 className="font-bold text-sm">Sarah Jenkins</h4>
-                                    <p className="text-xs text-on-surface-variant">Requested Oct 20, 2023</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-black text-secondary">1</p>
-                                    <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-tighter">
-                                        Pets</p>
-                                </div>
-                            </div>
-                            {/* <!-- Request 4 --> */}
-                            <div
-                                className="flex items-center gap-4 bg-surface-container-lowest p-4 rounded-xl border border-transparent hover:border-secondary transition-all">
-                                <img alt="Avatar" className="w-12 h-12 rounded-full object-cover"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-pM_lD6jS0lU8o_p-2wJgS3-Tf4_S06ZqU_Vz0D1lZ7s_Xo-1gU6_Vv9w3lW4w4w4w4w4w4w4w4w4w4w4" />
-                                <div className="flex-grow">
-                                    <h4 className="font-bold text-sm">The Miller Family</h4>
-                                    <p className="text-xs text-on-surface-variant">Requested Oct 15, 2023</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-black text-secondary">3</p>
-                                    <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-tighter">
-                                        Pets</p>
-                                </div>
-                            </div>
-                        </div>
-                        <button
-                            className="mt-8 w-full border border-primary text-primary py-4 rounded-full font-bold text-sm font-headline hover:bg-primary hover:text-on-primary transition-all">
-                            Apply for Early Consideration
-                        </button>
-                    </div>
-                </div>
-    </>
-  )
-}
+    <div className="lg:col-span-4 h-full">
+      <div className="bg-surface-container-low rounded-lg p-8 border border-outline-variant/10 h-full flex flex-col">
+        <div className="flex justify-between items-center mb-8">
+          <h3 className="text-2xl font-extrabold font-headline tracking-tight">Interest List</h3>
+          <span className="bg-secondary text-on-secondary px-3 py-1 rounded-full text-xs font-bold">
+            {loading ? '...' : requests.filter(r => r.status === 'Pending').length} Pending
+          </span>
+        </div>
 
-export default AdoptionRequestsBox
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center text-slate-400">Loading...</div>
+        ) : requests.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">No adoption requests yet.</div>
+        ) : (
+          <div className="space-y-4 overflow-y-auto pr-2 max-h-[400px]">
+            {requests.map(req => (
+              <div key={req.requestId} className="flex flex-col gap-2 bg-surface-container-lowest p-4 rounded-xl border border-transparent hover:border-secondary transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm flex-shrink-0">
+                    {(req.initiatorName || 'U').charAt(0)}
+                  </div>
+                  <div className="flex-grow min-w-0">
+                    <h4 className="font-bold text-sm truncate">{req.initiatorName || req.initiatorId}</h4>
+                    <p className="text-xs text-on-surface-variant">{req.requestDate ? new Date(req.requestDate).toLocaleDateString() : ''}</p>
+                  </div>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${statusColor[req.status] || 'bg-slate-100 text-slate-600'}`}>
+                    {req.status}
+                  </span>
+                </div>
+                {req.status === 'Pending' && (
+                  <div className="flex gap-2 pt-1">
+                    <button onClick={() => act(req.requestId, 'accept')} className="flex-1 text-xs font-bold bg-green-600 text-white py-1.5 rounded-lg hover:bg-green-700 transition">Accept</button>
+                    <button onClick={() => act(req.requestId, 'reject')} className="flex-1 text-xs font-bold bg-red-500 text-white py-1.5 rounded-lg hover:bg-red-600 transition">Reject</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

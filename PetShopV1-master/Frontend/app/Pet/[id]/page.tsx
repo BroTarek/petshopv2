@@ -16,15 +16,54 @@ const PetDetailPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [adoptionSent, setAdoptionSent] = useState(false);
+    const [currentUser, setCurrentUser] = useState<any>(null);
 
     useEffect(() => {
         if (!params.id) return;
         
+        const userStr = localStorage.getItem('user');
+        if (userStr) setCurrentUser(JSON.parse(userStr));
+        
         const fetchPet = async () => {
             try {
                 const response = await api.get(`/Pet/${params.id}`);
-                if (response.data && response.data.Success) {
-                    setPet(response.data.Pet);
+                const ok = response.data.Success || response.data.success;
+                const petData = response.data.Pet || response.data.pet;
+                if (response.data && ok && petData) {
+                    // Normalize pet data
+                    const normalizedPet = {
+                        ...petData,
+                        petId: petData.petId || petData.PetId || petData.id || petData.Id,
+                        name: petData.name || petData.Name,
+                        type: petData.type || petData.Type,
+                        breed: petData.breed || petData.Breed,
+                        age: petData.age || petData.Age,
+                        gender: petData.gender || petData.Gender,
+                        location: petData.location || petData.Location,
+                        healthStatus: petData.healthStatus || petData.HealthStatus,
+                        description: petData.description || petData.Description,
+                        status: petData.status || petData.Status,
+                        ownerId: petData.ownerId || petData.OwnerId,
+                        ownerName: petData.ownerName || petData.OwnerName,
+                        images: petData.images || petData.Images || []
+                    };
+                    setPet(normalizedPet);
+
+                    // Check if already requested
+                    const userStr = localStorage.getItem('user');
+                    if (userStr) {
+                        const user = JSON.parse(userStr);
+                        const uid = user.userId || user.UserId || user.Id || user.id;
+                        api.get(`/Adoption/user/${uid}/initiated`).then(res => {
+                            if (Array.isArray(res.data)) {
+                                const hasReq = res.data.some((r: any) => 
+                                    (r.petId === normalizedPet.petId || r.PetId === normalizedPet.petId) && 
+                                    (r.status === 'Pending' || r.Status === 'Pending')
+                                );
+                                if (hasReq) setAdoptionSent(true);
+                            }
+                        }).catch(() => {});
+                    }
                 } else {
                     setError('Pet not found');
                 }
@@ -46,18 +85,20 @@ const PetDetailPage = () => {
                 return;
             }
             const user = JSON.parse(userStr);
+            const uid = user.userId || user.UserId || user.Id || user.id;
 
             const res = await api.post('/Adoption/initiate', {
-                petId: pet.petId,
-                initiatorUserId: user.Id,
-                receiverUserId: pet.ownerId
+                PetId: pet.petId || pet.id,
+                InitiatorUserId: uid,
+                ReceiverUserId: pet.ownerId
             });
 
-            if (res.data.Success) {
+            const ok = res.status === 200 || res.status === 201 || res.data.RequestId || res.data.requestId;
+            if (ok) {
                 setAdoptionSent(true);
                 alert("Adoption request sent successfully!");
             } else {
-                alert(res.data.Error || "Failed to send request.");
+                alert(res.data.Error || res.data.error || "Failed to send request.");
             }
         } catch (err: any) {
             alert(err.response?.data?.Error || "Failed to initiate adoption.");
@@ -70,12 +111,11 @@ const PetDetailPage = () => {
     return (
         <main className="pt-32 pb-20 max-w-screen-2xl mx-auto px-6 md:px-12 bg-white min-h-screen text-slate-800">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 mb-20">
-                {/* Pass images to Carousel later if modifying it, keeping as is for now */}
-                <ImageCarousel />
-                <ProfileSummary pet={pet} onAdopt={handleAdopt} />
+                <ImageCarousel images={pet.images} />
+                <ProfileSummary pet={pet} onAdopt={handleAdopt} requested={adoptionSent} />
             </div>
 
-            <EditorialDetailsSection />
+            <EditorialDetailsSection pet={pet} />
 
             <section className="mb-32">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
@@ -90,11 +130,13 @@ const PetDetailPage = () => {
                             </div>
                         )}
                     </div>
-                    <AdoptionRequestsBox />
+                    {currentUser && (currentUser.userId === pet.ownerId || currentUser.UserId === pet.ownerId || currentUser.Id === pet.ownerId || currentUser.id === pet.ownerId) && (
+                        <AdoptionRequestsBox petOwnerId={pet.ownerId} />
+                    )}
                 </div>
             </section>
 
-            <RelatedPetsGrid />
+            <RelatedPetsGrid currentPetType={pet.type} currentPetId={pet.petId} />
         </main>
     );
 };

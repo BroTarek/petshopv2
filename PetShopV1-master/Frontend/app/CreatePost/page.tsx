@@ -24,14 +24,17 @@ export default function CreatePostPage() {
             return;
         }
         const user = JSON.parse(userStr);
-        setUserId(user.Id);
+        const uid = user.userId || user.UserId || user.Id || user.id;
+        setUserId(uid);
 
         // Fetch user's pets to populate the Pet Select dropdown
         const fetchMyPets = async () => {
             try {
-                const res = await api.get(`/Pet/owner/${user.Id}`);
-                if (res.data.Success) {
-                    setMyPets(res.data.Pets);
+                const res = await api.get(`/Pet/owner/${uid}`);
+                const ok = res.data.Success || res.data.success;
+                const pts = res.data.Pets || res.data.pets;
+                if (ok) {
+                    setMyPets(pts || []);
                 }
             } catch (err) {
                 console.error("Failed to fetch user pets", err);
@@ -57,7 +60,8 @@ export default function CreatePostPage() {
             };
             const response = await api.post('/Post/create', body);
             
-            if (response.data.Success) {
+            const ok = response.data.Success || response.data.success;
+            if (ok) {
                 router.push('/Posts');
             } else {
                 setError(response.data.Error || 'Failed to create post');
@@ -94,7 +98,7 @@ export default function CreatePostPage() {
                                 value={formData.title}
                                 onChange={handleChange}
                                 placeholder="E.g., Beau's first day at the park!"
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-slate-800"
                             />
                         </div>
 
@@ -104,7 +108,7 @@ export default function CreatePostPage() {
                                 name="petId"
                                 value={formData.petId}
                                 onChange={handleChange}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white cursor-pointer"
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white cursor-pointer text-slate-800"
                             >
                                 <option value="">No specific pet</option>
                                 {myPets.map(pet => (
@@ -122,7 +126,7 @@ export default function CreatePostPage() {
                                 value={formData.description}
                                 onChange={handleChange}
                                 placeholder="A brief summary of your post"
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors text-slate-800"
                             />
                         </div>
 
@@ -135,7 +139,7 @@ export default function CreatePostPage() {
                                 value={formData.content}
                                 onChange={handleChange}
                                 placeholder="Write your full story here..."
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-y"
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors resize-y text-slate-800"
                             ></textarea>
                         </div>
 

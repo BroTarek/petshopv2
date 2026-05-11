@@ -3,9 +3,10 @@ import React from 'react';
 type PetProfileProps = {
     pet: any;
     onAdopt: () => void;
+    requested?: boolean;
 };
 
-const ProfileSummary = ({ pet, onAdopt }: PetProfileProps) => {
+const ProfileSummary = ({ pet, onAdopt, requested }: PetProfileProps) => {
     return (
         <div className="md:col-span-5 lg:col-span-4 flex flex-col gap-6">
             <div className="bg-surface-container-low rounded-lg p-8 md:p-10 flex-grow flex flex-col justify-between shadow-sm">
@@ -29,10 +30,17 @@ const ProfileSummary = ({ pet, onAdopt }: PetProfileProps) => {
                 <div className="flex flex-col gap-4">
                     <button
                         onClick={onAdopt}
-                        className="bg-primary text-white rounded-xl py-5 px-8 flex items-center justify-center gap-3 satin-hover transition-all duration-300 font-bold group"
+                        disabled={requested}
+                        className={`rounded-xl py-5 px-8 flex items-center justify-center gap-3 transition-all duration-300 font-bold group shadow-md ${
+                            requested 
+                            ? 'bg-slate-200 text-slate-500 cursor-not-allowed' 
+                            : 'bg-amber-600 text-white hover:bg-amber-700 hover:shadow-lg active:scale-95'
+                        }`}
                     >
-                        <span className="font-headline tracking-tight">Begin Adoption Journey</span>
-                        <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                        <span className="font-headline tracking-tight uppercase text-sm">
+                            {requested ? 'Application Pending' : 'Begin Adoption Journey'}
+                        </span>
+                        {!requested && <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>}
                     </button>
                 </div>
             </div>

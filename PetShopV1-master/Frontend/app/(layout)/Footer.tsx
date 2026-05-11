@@ -14,8 +14,8 @@ const Footer = () => {
                 <div className="flex gap-4">
                     <span className="material-symbols-outlined text-on-surface-variant"
                         data-icon="facebook">social_leaderboard</span>
-                    <span className="material-symbols-outlined text-on-surface-variant" data-icon="instagram">retweet</span>
-                    <span className="material-symbols-outlined text-on-surface-variant" data-icon="youtube">video_youtube</span>
+                    {/* <span className="material-symbols-outlined text-on-surface-variant" data-icon="instagram">retweet</span>
+                    <span className="material-symbols-outlined text-on-surface-variant" data-icon="youtube">video_youtube</span> */}
                 </div>
             </div>
             <div>

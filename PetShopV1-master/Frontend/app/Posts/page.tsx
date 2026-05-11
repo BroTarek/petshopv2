@@ -50,7 +50,11 @@ const PostsPage = () => {
                     </div>
                 ) : (
                     posts.map((post) => (
-                        <Post key={post.postId} post={post} />
+                        <Post
+                            key={post.postId}
+                            post={post}
+                            onDeleted={(id) => setPosts(prev => prev.filter(p => p.postId !== id))}
+                        />
                     ))
                 )}
             </section>

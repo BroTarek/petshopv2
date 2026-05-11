@@ -1,13 +1,13 @@
 import React from 'react'
 
-const EditorialDetailsSection = () => {
+const EditorialDetailsSection = ({ pet }: { pet: any }) => {
   return (
     <>
      <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-24 mb-32 items-start">
             <div className="md:col-span-4 sticky top-32">
                 <h2 className="text-4xl font-extrabold tracking-tighter text-primary mb-6 font-headline">The Dossier
                 </h2>
-                <p className="text-on-surface-variant leading-relaxed">Everything you need to know about Beau's personality,
+                <p className="text-on-surface-variant leading-relaxed">Everything you need to know about {pet.name}'s personality,
                     quirks, and medical background curated by our behaviorists.</p>
                 <div className="mt-12 flex flex-col gap-6">
                     <div className="flex items-center gap-4">
@@ -74,8 +74,8 @@ const EditorialDetailsSection = () => {
                                 className="bg-secondary-fixed text-on-secondary-fixed text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-tighter">Yes</span>
                         </li>
                         <li className="flex items-center justify-between pb-3">
-                            <span className="text-sm font-medium">Special Diet</span>
-                            <span className="text-on-surface-variant text-xs italic">Grain-free sensitive</span>
+                            <span className="text-sm font-medium">Health Status</span>
+                            <span className="text-on-surface-variant text-xs italic">{pet.healthStatus || 'N/A'}</span>
                         </li>
                     </ul>
                 </div>
@@ -85,9 +85,7 @@ const EditorialDetailsSection = () => {
                         <h3 className="text-2xl font-extrabold mb-6 font-headline text-on-secondary-container">The
                             Lifestyle Fit</h3>
                         <p className="text-on-secondary-container/80 leading-relaxed text-lg italic">
-                            "Beau is the perfect companion for an apartment dweller or someone who works from home. He
-                            isn't much of a barker, but he is a world-className snorer. He enjoys the aesthetic of a clean
-                            home and will happily model his latest harness collection for your Instagram followers."
+                            "{pet.description || `${pet.name} is the perfect companion. ${pet.name} is looking for a loving home where they can be themselves.`}"
                         </p>
                     </div>
                     <span
