@@ -23,16 +23,17 @@ export default function LoginPage() {
                 password,
             });
 
-            if (response.data && response.data.Success) {
-                const token = response.data.Data.Token;
+            if (response.data && (response.data.Success || response.data.success)) {
+                const data = response.data.Data || response.data.data;
+                const token = data.Token || data.token;
                 localStorage.setItem('token', token);
-                localStorage.setItem('user', JSON.stringify(response.data.Data));
+                localStorage.setItem('user', JSON.stringify(data));
                 router.push('/');
             } else {
-                setError(response.data.Message || 'Login failed. Please check your credentials.');
+                setError(response.data.Message || response.data.message || 'Login failed. Please check your credentials.');
             }
         } catch (err: any) {
-            setError(err.response?.data?.Message || err.message || 'An error occurred during login');
+            setError(err.response?.data?.Message || err.response?.data?.message || err.response?.data?.Error || err.response?.data?.error || err.message || 'An error occurred during login');
         } finally {
             setLoading(false);
         }
@@ -44,9 +45,9 @@ export default function LoginPage() {
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
                     Welcome Back
                 </h2>
-                <p className="mt-2 text-center text-sm text-slate-600">
+                <p className="mt-2 text-center text-sm text-slate-600 ">
                     Or{' '}
-                    <Link href="/Register" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
+                    <Link href="/Register" className="font-medium text-indigo-600 hover:text-indigo-500 black-colors">
                         create a new account
                     </Link>
                 </p>
@@ -78,7 +79,7 @@ export default function LoginPage() {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="appearance-none block w-full px-3 py-3 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200 ease-in-out"
+                                    className="appearance-none block w-full px-3 py-3 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200 ease-in-out text-black"
                                     placeholder="you@example.com"
                                 />
                             </div>
@@ -97,7 +98,7 @@ export default function LoginPage() {
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="appearance-none block w-full px-3 py-3 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200 ease-in-out"
+                                    className="appearance-none block w-full px-3 py-3 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200 ease-in-out text-black"
                                     placeholder="••••••••"
                                 />
                             </div>

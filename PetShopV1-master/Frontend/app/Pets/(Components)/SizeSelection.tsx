@@ -13,7 +13,7 @@ const SizeSelection = () => {
                             className="w-5 h-5 rounded-md border-outline-variant text-primary focus:ring-primary"
                             type="checkbox" />
                         <span
-                            className="text-sm font-medium group-hover:text-primary transition-colors">Small
+                            className="text-sm font-medium group-hover:text-primary transition-colors ">Small
                             (Under 20 lbs)</span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer group">

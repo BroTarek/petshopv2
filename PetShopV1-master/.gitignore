@@ -1,0 +1,93 @@
+# ============================================================
+#  PetShop – Root .gitignore
+#  Covers: Next.js (Frontend) + .NET / C# (Backend) + Docker
+# ============================================================
+
+# # ──────────────────────────────────────────
+# #  ENVIRONMENT / SECRETS  (never commit!)
+# # ──────────────────────────────────────────
+# .env
+# .env.*
+# !.env.example
+
+# # ──────────────────────────────────────────
+#  NEXT.JS / NODE  (Frontend)
+# ──────────────────────────────────────────
+Frontend/node_modules/
+Frontend/.next/
+Frontend/out/
+Frontend/.cache/
+Frontend/.turbo/
+Frontend/build/
+
+# Next.js type-check artifacts
+Frontend/next-env.d.ts
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ──────────────────────────────────────────
+#  .NET / C#  (Backend)
+# ──────────────────────────────────────────
+
+## Build output
+Backend/**/bin/
+Backend/**/obj/
+
+## Visual Studio artifacts
+*.user
+*.suo
+.vs/
+*.userprefs
+
+## Publish / release output
+Backend/**/publish/
+Backend/**/*.nupkg
+Backend/**/*.snupkg
+
+## Rider / JetBrains
+.idea/
+
+## Test results
+Backend/**/TestResults/
+Backend/**/*.trx
+Backend/**/*.coverage
+
+## Entity Framework migrations (keep if you want to track them; remove if not)
+# Backend/**/Migrations/
+
+# ──────────────────────────────────────────
+#  DOCKER
+# ──────────────────────────────────────────
+# Docker override files (local dev overrides)
+docker-compose.override.yml
+docker-compose.*.local.yml
+
+# ──────────────────────────────────────────
+#  OS / EDITOR JUNK
+# ──────────────────────────────────────────
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+
+# JetBrains Rider
+*.sln.iml
+
+# ──────────────────────────────────────────
+#  MISC
+# ──────────────────────────────────────────
+*.log
+*.tmp
+*.bak
+*.orig

@@ -46,7 +46,7 @@ const PetsPage = () => {
     }));
 
     return (
-        <main className="pt-32 pb-20 max-w-screen-2xl mx-auto px-6 md:px-12 bg-white min-h-screen">
+        <main className="pt-32 pb-20 max-w-screen-2xl mx-auto px-6 md:px-12 bg-black min-h-screen">
             <HeroSection />
             <div className="flex flex-col lg:flex-row gap-12 mt-12">
                 <SidebarFilters />

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import * as signalR from '@microsoft/signalr';
+import { HubConnectionBuilder, HubConnection } from '@microsoft/signalr';
 import { useRouter } from 'next/navigation';
 
 interface AdoptionUpdate {
@@ -20,7 +20,7 @@ interface AdoptionUpdate {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
+  const [connection, setConnection] = useState<HubConnection | null>(null);
   const [status, setStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
   const [logs, setLogs] = useState<{ id: string; msg: string; type: string; time: string }[]>([]);
   const [token, setToken] = useState('');
@@ -53,7 +53,7 @@ export default function DashboardPage() {
 
     const connectToHub = (authToken: string) => {
       setStatus('connecting');
-      const conn = new signalR.HubConnectionBuilder()
+      const conn = new HubConnectionBuilder()
         .withUrl('http://localhost:5000/hubs/adoption', {
           accessTokenFactory: () => authToken
         })
@@ -148,8 +148,20 @@ export default function DashboardPage() {
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="text-sm font-medium text-slate-600">
-            User: {currentUser?.FirstName}
+          <div className="flex items-center gap-3">
+            <div className="text-sm font-medium text-slate-600">
+              User: {currentUser?.FirstName}
+            </div>
+            <button 
+              onClick={() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                router.push('/Login');
+              }}
+              className="text-xs font-bold text-slate-600 hover:text-red-600 bg-slate-100 hover:bg-red-50 px-3 py-1 rounded-full transition-colors"
+            >
+              Logout
+            </button>
           </div>
           <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold uppercase ${
             status === 'connected' ? 'bg-green-100 text-green-700' :

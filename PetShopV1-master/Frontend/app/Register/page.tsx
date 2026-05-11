@@ -33,14 +33,14 @@ export default function RegisterPage() {
         try {
             const response = await api.post('/Auth/register', formData);
 
-            if (response.data && response.data.Success) {
+            if (response.data && (response.data.Success || response.data.success)) {
                 // Assuming successful registration, automatically log them in or redirect to login
                 router.push('/Login?registered=true');
             } else {
-                setError(response.data.Message || 'Registration failed. Please try again.');
+                setError(response.data.Message || response.data.message || 'Registration failed. Please try again.');
             }
         } catch (err: any) {
-            setError(err.response?.data?.Message || err.message || 'An error occurred during registration');
+            setError(err.response?.data?.Message || err.response?.data?.message || err.response?.data?.Error || err.response?.data?.error || err.message || 'An error occurred during registration');
         } finally {
             setLoading(false);
         }
@@ -86,7 +86,7 @@ export default function RegisterPage() {
                                         required
                                         value={formData.firstName}
                                         onChange={handleChange}
-                                        className="appearance-none block w-full px-3 py-3 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                        className="appearance-none block w-full px-3 py-3 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
                                         placeholder="John"
                                     />
                                 </div>
@@ -104,7 +104,7 @@ export default function RegisterPage() {
                                         required
                                         value={formData.lastName}
                                         onChange={handleChange}
-                                        className="appearance-none block w-full px-3 py-3 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                        className="appearance-none block w-full px-3 py-3 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
                                         placeholder="Doe"
                                     />
                                 </div>
@@ -158,7 +158,7 @@ export default function RegisterPage() {
                                     name="role"
                                     value={formData.role}
                                     onChange={handleChange}
-                                    className="appearance-none block w-full px-3 py-3 border border-slate-300 rounded-xl shadow-sm bg-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="appearance-none block w-full px-3 py-3 border border-slate-300 rounded-xl shadow-sm bg-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-black"
                                 >
                                     <option value={1}>Adopter</option>
                                     <option value={0}>Shelter / Admin</option>
