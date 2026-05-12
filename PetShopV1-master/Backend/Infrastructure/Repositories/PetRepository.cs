@@ -29,6 +29,7 @@ public class PetRepository : IPetRepository
         return await _context.Pets
             .Include(p => p.Owner)
             .Include(p => p.AdoptionRequests)
+            .Include(p => p.Favourites)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
@@ -54,6 +55,7 @@ public class PetRepository : IPetRepository
         return await _context.Pets
             .Include(p => p.Owner)
             .Include(p => p.AdoptionRequests)
+            .Include(p => p.Favourites)
             .OrderByDescending(p => p.CreationDate)
             .ToListAsync();
     }
@@ -63,6 +65,7 @@ public class PetRepository : IPetRepository
         return await _context.Pets
             .Include(p => p.Owner)
             .Include(p => p.AdoptionRequests)
+            .Include(p => p.Favourites)
             .Where(p => p.OwnerId == ownerId)
             .OrderByDescending(p => p.CreationDate)
             .ToListAsync();

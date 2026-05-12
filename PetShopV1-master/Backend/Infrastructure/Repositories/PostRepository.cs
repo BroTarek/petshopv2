@@ -25,7 +25,6 @@ public class PostRepository : IPostRepository
     {
         return await _context.Posts
             .Include(p => p.Pet)
-            .Include(p => p.Favourites)
             .Include(p => p.User)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
@@ -54,7 +53,6 @@ public class PostRepository : IPostRepository
     {
         return await _context.Posts
             .Include(p => p.Pet)
-            .Include(p => p.Favourites)
             .Include(p => p.User)
             .Where(p => p.UserId == userId && !p.IsDeleted)
             .OrderByDescending(p => p.CreationDate)
@@ -74,7 +72,6 @@ public class PostRepository : IPostRepository
     {
         return await _context.Posts
             .Include(p => p.Pet)
-            .Include(p => p.Favourites)
             .Include(p => p.User)
             .Where(p => !p.IsDeleted)
             .OrderByDescending(p => p.CreationDate)
@@ -85,7 +82,6 @@ public class PostRepository : IPostRepository
     {
         return await _context.Posts
             .Include(p => p.Pet)
-            .Include(p => p.Favourites)
             .Include(p => p.User)
             .Where(p => p.IsActive && !p.IsDeleted)
             .OrderByDescending(p => p.CreationDate)
@@ -96,7 +92,6 @@ public class PostRepository : IPostRepository
     {
         return await _context.Posts
             .Include(p => p.Pet)
-            .Include(p => p.Favourites)
             .Include(p => p.User)
             .FirstOrDefaultAsync(p => p.Id == postId && !p.IsDeleted);
     }
@@ -161,7 +156,6 @@ public class PostRepository : IPostRepository
     {
         return await _context.Posts
             .Include(p => p.Pet)
-            .Include(p => p.Favourites)
             .Include(p => p.User)
             .Where(p => !p.IsActive && !p.IsDeleted)
             .OrderByDescending(p => p.CreationDate)

@@ -24,14 +24,14 @@ public class FavouriteController : ControllerBase
     {
         try
         {
-            var favourite = await _favouriteService.AddPostToFavouritesAsync(
+            var favourite = await _favouriteService.AddPetToFavouritesAsync(
                 request.UserId, 
-                request.PostId);
+                request.PetId);
             
             return Ok(new
             {
                 Success = true,
-                Message = "Post added to favourites successfully",
+                Message = "Pet added to favourites successfully",
                 FavouriteId = favourite.Id,
                 FavouritedAt = favourite.CreatedAt
             });
@@ -58,12 +58,12 @@ public class FavouriteController : ControllerBase
     {
         try
         {
-            await _favouriteService.RemovePostFromUserFavouritesAsync(userId, favouriteId);
+            await _favouriteService.RemovePetFromUserFavouritesAsync(userId, favouriteId);
             
             return Ok(new
             {
                 Success = true,
-                Message = "Post removed from favourites successfully"
+                Message = "Pet removed from favourites successfully"
             });
         }
         catch (KeyNotFoundException ex)
@@ -88,16 +88,15 @@ public class FavouriteController : ControllerBase
     {
         try
         {
-            var favourites = await _favouriteService.GetPostsFavouritedByUserAsync(userId);
+            var favourites = await _favouriteService.GetPetsFavouritedByUserAsync(userId);
             
             // Convert to ViewModel for better response
             var response = favourites.Select(f => new
             {
                 FavouriteId = f.Id,
-                PostId = f.PostId,
-                PostTitle = f.Post?.Title ?? "Unknown Post",
-                FavouritedAt = f.CreatedAt,
-                PetName = f.Post?.Pet?.Name ?? string.Empty
+                PetId = f.PetId,
+                PetName = f.Pet?.Name ?? "Unknown Pet",
+                FavouritedAt = f.CreatedAt
             });
             
             return Ok(new
@@ -122,18 +121,18 @@ public class FavouriteController : ControllerBase
     /// Check if user has favourited a specific post
     /// </summary>
     [HttpGet("check")]
-    public async Task<IActionResult> CheckFavourite([FromQuery] string userId, [FromQuery] string postId)
+    public async Task<IActionResult> CheckFavourite([FromQuery] string userId, [FromQuery] string petId)
     {
         try
         {
-            var hasFavourited = await _favouriteService.HasUserFavouritedPostAsync(userId, postId);
-            var favourite = await _favouriteService.GetFavouriteByUserAndPostAsync(userId, postId);
+            var hasFavourited = await _favouriteService.HasUserFavouritedPetAsync(userId, petId);
+            var favourite = await _favouriteService.GetFavouriteByUserAndPetAsync(userId, petId);
             
             return Ok(new
             {
                 Success = true,
                 UserId = userId,
-                PostId = postId,
+                PetId = petId,
                 IsFavourited = hasFavourited,
                 FavouriteId = favourite?.Id,
                 FavouritedAt = favourite?.CreatedAt
@@ -148,17 +147,17 @@ public class FavouriteController : ControllerBase
     /// <summary>
     /// Get favourite count for a post
     /// </summary>
-    [HttpGet("post/{postId}/count")]
-    public async Task<IActionResult> GetPostFavouriteCount(string postId)
+    [HttpGet("pet/{petId}/count")]
+    public async Task<IActionResult> GetPetFavouriteCount(string petId)
     {
         try
         {
-            var count = await _favouriteService.GetFavouriteCountForPostAsync(postId);
+            var count = await _favouriteService.GetFavouriteCountForPetAsync(petId);
             
             return Ok(new
             {
                 Success = true,
-                PostId = postId,
+                PetId = petId,
                 FavouriteCount = count
             });
         }
@@ -209,12 +208,11 @@ public class FavouriteController : ControllerBase
                 FavouriteId = f.Id,
                 UserId = f.UserId,
                 UserName = $"{f.User?.FirstName} {f.User?.LastName}",
-                PostId = f.PostId,
-                PostTitle = f.Post?.Title ?? "Unknown",
-                PostDescription = f.Post?.Description ?? string.Empty,
-                PostImageUrl = f.Post?.ImageUrl ?? string.Empty,
-                PetName = f.Post?.Pet?.Name ?? string.Empty,
-                PetType = f.Post?.Pet?.Type ?? string.Empty,
+                PetId = f.PetId,
+                PetName = f.Pet?.Name ?? "Unknown",
+                PetType = f.Pet?.Type ?? string.Empty,
+                PetBreed = f.Pet?.Breed ?? string.Empty,
+                PetImageUrl = f.Pet?.Images?.FirstOrDefault() ?? string.Empty,
                 FavouritedAt = f.CreatedAt
             });
             
@@ -241,5 +239,5 @@ public class FavouriteController : ControllerBase
 public class AddFavouriteRequest
 {
     public string UserId { get; set; } = string.Empty;
-    public string PostId { get; set; } = string.Empty;
+    public string PetId { get; set; } = string.Empty;
 }

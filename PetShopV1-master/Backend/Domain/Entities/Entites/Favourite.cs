@@ -9,6 +9,6 @@ public class Favourite
     public string UserId { get; set; } = string.Empty;
     public User User { get; set; } = null!;
 
-    public string PostId { get; set; } = string.Empty;
-    public Post Post { get; set; } = null!;
+    public string PetId { get; set; } = string.Empty;
+    public Pet Pet { get; set; } = null!;
 }

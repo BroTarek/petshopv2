@@ -58,12 +58,18 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Favourite>()
-            .HasIndex(f => new { f.UserId, f.PostId }).IsUnique();
+            .HasIndex(f => new { f.UserId, f.PetId }).IsUnique();
 
         modelBuilder.Entity<Favourite>()
-            .HasOne(f => f.Post)
+            .HasOne(f => f.Pet)
             .WithMany(p => p.Favourites)
-            .HasForeignKey(f => f.PostId)
+            .HasForeignKey(f => f.PetId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Favourite>()
+            .HasOne(f => f.User)
+            .WithMany(u => u.Favourites)
+            .HasForeignKey(f => f.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Post>()

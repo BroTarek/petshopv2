@@ -117,27 +117,27 @@ export default function MyPetsTab({ userId }: { userId: string }) {
 
   return (
     <div>
-      <div className="flex justify-end mb-4">
-        <button onClick={openAdd} className="bg-blue-600 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 transition">+ Add Pet</button>
+      <div className="flex justify-end mb-8">
+        <button onClick={openAdd} className="bg-primary text-on-primary px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all">+ Register Pet</button>
       </div>
       {pets.length === 0 ? (
         <div className="py-12 text-center text-slate-400">No pets yet. Add your first one!</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {pets.map(pet => (
-            <div key={pet.petId} className="bg-slate-50 rounded-xl border border-slate-100 overflow-hidden flex flex-col">
-              <div className="h-36 bg-slate-200 relative">
+            <div key={pet.petId} className="group bg-surface-container-low rounded-3xl border border-surface-container overflow-hidden flex flex-col hover:shadow-editorial-hover transition-all">
+              <div className="h-44 bg-surface-container relative">
                 {pet.primaryImage
                   ? <img src={pet.primaryImage} alt={pet.name} className="w-full h-full object-cover" />
                   : <div className="w-full h-full flex items-center justify-center text-slate-400 text-4xl">🐾</div>}
-                <span className={`absolute top-2 right-2 text-xs font-bold px-2 py-0.5 rounded-full ${pet.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                <span className={`absolute top-4 right-4 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${pet.status === 'Available' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
                   {pet.status}
                 </span>
               </div>
               <div className="p-4 flex justify-between items-center">
                 <div>
-                  <h3 className="font-bold text-slate-800">{pet.name}</h3>
-                  <p className="text-xs text-slate-500">{pet.breed} · {pet.age}y</p>
+                  <h3 className="font-black text-primary font-headline tracking-tight">{pet.name}</h3>
+                  <p className="text-[10px] text-on-surface-variant font-black uppercase tracking-widest">{pet.breed} · {pet.age}y</p>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => openEdit(pet)} className="text-blue-500 hover:text-blue-700"><span className="material-symbols-outlined text-[18px]">edit</span></button>

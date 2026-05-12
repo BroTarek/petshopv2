@@ -129,7 +129,7 @@ public class PostController : ControllerBase
                 CreationDate = post.CreationDate,
                 LastModified = post.LastModified,
                 IsActive = post.IsActive,
-                FavouriteCount = post.Favourites?.Count ?? 0
+                FavouriteCount = post.Pet?.Favourites?.Count ?? 0
             };
             
             return Ok(new { Success = true, Post = response });
@@ -166,7 +166,7 @@ public class PostController : ControllerBase
                 CreationDate = post.CreationDate,
                 LastModified = post.LastModified,
                 IsActive = post.IsActive,
-                FavouriteCount = post.Favourites?.Count ?? 0
+                FavouriteCount = post.Pet?.Favourites?.Count ?? 0
             });
             
             return Ok(new
@@ -204,7 +204,7 @@ public class PostController : ControllerBase
                 UserId = post.UserId,
                 UserName = $"{post.User?.FirstName} {post.User?.LastName}",
                 CreationDate = post.CreationDate,
-                FavouriteCount = post.Favourites?.Count ?? 0
+                FavouriteCount = post.Pet?.Favourites?.Count ?? 0
             });
             
             return Ok(new
@@ -244,7 +244,7 @@ public class PostController : ControllerBase
                 UserId = post.UserId,
                 UserName = $"{post.User?.FirstName} {post.User?.LastName}",
                 CreationDate = post.CreationDate,
-                FavouriteCount = post.Favourites?.Count ?? 0
+                FavouriteCount = post.Pet?.Favourites?.Count ?? 0
             });
             
             return Ok(new
@@ -279,7 +279,7 @@ public class PostController : ControllerBase
                 UserId = post.UserId,
                 UserName = $"{post.User?.FirstName} {post.User?.LastName}",
                 CreationDate = post.CreationDate,
-                FavouriteCount = post.Favourites?.Count ?? 0
+                FavouriteCount = post.Pet?.Favourites?.Count ?? 0
             });
             
             return Ok(new

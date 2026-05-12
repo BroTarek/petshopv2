@@ -8,17 +8,10 @@ import MyPetsTab from './(tabs)/MyPetsTab';
 import AdoptionsTab from './(tabs)/AdoptionsTab';
 import ReviewsTab from './(tabs)/ReviewsTab';
 import SettingsTab from './(tabs)/SettingsTab';
+import UsersTab from './(tabs)/UsersTab';
+import FavouritesTab from './(tabs)/FavouritesTab';
 
-type Tab = 'overview' | 'pets' | 'posts' | 'adoptions' | 'reviews' | 'settings';
-
-const TABS: { key: Tab; label: string; icon: string }[] = [
-  { key: 'overview',   label: 'Overview',   icon: 'person' },
-  { key: 'pets',       label: 'My Pets',    icon: 'pets' },
-  { key: 'posts',      label: 'My Posts',   icon: 'article' },
-  { key: 'adoptions',  label: 'Adoptions',  icon: 'handshake' },
-  { key: 'reviews',    label: 'Reviews',    icon: 'star' },
-  { key: 'settings',  label: 'Settings',   icon: 'settings' },
-];
+type Tab = 'overview' | 'pets' | 'posts' | 'favourites' | 'adoptions' | 'reviews' | 'users' | 'settings';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -29,6 +22,7 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({ firstName: '', lastName: '' });
   const [message, setMessage] = useState('');
   const [userId, setUserId] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -36,6 +30,7 @@ export default function ProfilePage() {
     const u = JSON.parse(userStr);
     const uid = u.userId || u.UserId || u.Id || u.id;
     setUserId(uid);
+    setIsAdmin(u.role === 'Admin' || u.Role === 'Admin');
 
     api.get(`/User/${uid}/profile`)
       .then(r => {
@@ -46,7 +41,12 @@ export default function ProfilePage() {
           setFormData({ firstName: prof.firstName, lastName: prof.lastName });
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        // If profile fetch fails, user might be deleted or token expired
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        router.push('/Login');
+      })
       .finally(() => setLoading(false));
   }, [router]);
 
@@ -59,92 +59,179 @@ export default function ProfilePage() {
       if (ok) {
         setProfile((p: any) => ({ ...p, ...formData }));
         setEditing(false);
-        setMessage('Profile updated!');
+        setMessage('Profile successfully updated.');
+        
+        // Update local storage user name
+        const u = JSON.parse(localStorage.getItem('user') || '{}');
+        localStorage.setItem('user', JSON.stringify({ ...u, firstName: formData.firstName, lastName: formData.lastName }));
+        window.dispatchEvent(new Event('storage'));
       }
-    } catch { setMessage('Failed to update.'); }
+    } catch { setMessage('Update failed. Please try again.'); }
   };
 
-  if (loading) return <div className="min-h-screen pt-32 text-center text-slate-400">Loading profile...</div>;
-  if (!profile) return <div className="min-h-screen pt-32 text-center text-red-500">Failed to load profile.</div>;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+  
+  if (!profile) return null;
 
   const initials = `${(profile.firstName || '?').charAt(0)}${(profile.lastName || '').charAt(0)}`;
 
+  const tabs: { key: Tab; label: string; icon: string; adminOnly?: boolean }[] = [
+    { key: 'overview',   label: 'Overview',   icon: 'person' },
+    { key: 'pets',       label: 'My Pets',    icon: 'pets' },
+    { key: 'posts',      label: 'My Posts',   icon: 'article' },
+    { key: 'favourites', label: 'Loved',      icon: 'favorite' },
+    { key: 'adoptions',  label: 'Adoptions',  icon: 'handshake' },
+    { key: 'reviews',    label: 'Reviews',    icon: 'star' },
+    { key: 'users',      label: 'Members',    icon: 'admin_panel_settings', adminOnly: true },
+    { key: 'settings',   label: 'Settings',   icon: 'settings' },
+  ];
+
+  const visibleTabs = tabs.filter(t => !t.adminOnly || isAdmin);
+
   return (
-    <main className="pt-28 pb-20 max-w-5xl mx-auto px-6 min-h-screen">
-      {/* Hero banner */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
-        <div className="h-28 bg-gradient-to-r from-blue-600 to-indigo-600" />
-        <div className="px-8 pb-6 relative">
-          <div className="absolute -top-10 w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-2xl font-black text-white border-4 border-white shadow">
-            {initials}
+    <main className="pt-32 pb-24 bg-background min-h-screen">
+      <div className="max-w-6xl mx-auto px-6 lg:px-12">
+        {/* Profile Hero */}
+        <div className="bg-surface-container-lowest rounded-3xl border border-surface-container overflow-hidden shadow-editorial-shadow mb-10">
+          <div className="h-40 bg-gradient-to-br from-primary via-slate-800 to-primary-container relative">
+            <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
           </div>
-          <div className="pt-12 flex justify-between items-end flex-wrap gap-3">
-            <div>
-              <h1 className="text-2xl font-extrabold text-slate-800">{profile.firstName} {profile.lastName}</h1>
-              <p className="text-slate-500 text-sm">{profile.email}</p>
-              <span className="mt-1 inline-block bg-blue-50 text-blue-700 font-bold text-xs px-3 py-0.5 rounded-full uppercase tracking-widest">{profile.role}</span>
+          <div className="px-10 pb-10 relative">
+            <div className="absolute -top-14 left-10 w-32 h-32 rounded-3xl bg-surface-container-lowest p-1 shadow-xl">
+               <div className="w-full h-full bg-gradient-to-tr from-secondary-fixed to-primary rounded-[2rem] flex items-center justify-center text-4xl font-black text-white">
+                {initials}
+              </div>
+            </div>
+            
+            <div className="pt-20 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+              <div>
+                <h1 className="text-4xl font-black text-primary font-headline tracking-tighter leading-none mb-2">
+                  {profile.firstName} {profile.lastName}
+                </h1>
+                <p className="text-on-surface-variant font-medium flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px]">mail</span> {profile.email}
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <div className="px-5 py-2 bg-secondary-fixed text-on-secondary-fixed rounded-full text-xs font-black uppercase tracking-widest">
+                  {profile.role}
+                </div>
+                <div className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest ${profile.accountStatus === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                  {profile.accountStatus}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Tab bar */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 overflow-x-auto">
-        {TABS.map(t => (
-          <button key={t.key} onClick={() => setActiveTab(t.key)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
-              activeTab === t.key ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}>
-            <span className="material-symbols-outlined text-[16px]">{t.icon}</span>
-            {t.label}
-          </button>
-        ))}
-      </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* Sidebar Navigation */}
+          <aside className="lg:col-span-3 space-y-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant mb-4 px-4">Account Navigator</p>
+            {visibleTabs.map(t => (
+              <button
+                key={t.key}
+                onClick={() => setActiveTab(t.key)}
+                className={`w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-bold text-sm transition-all duration-300 ${
+                  activeTab === t.key 
+                  ? 'bg-primary text-on-primary shadow-editorial-shadow translate-x-1' 
+                  : 'text-on-surface-variant hover:bg-surface-container hover:text-primary'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[20px]">{t.icon}</span>
+                {t.label}
+              </button>
+            ))}
+          </aside>
 
-      {/* Tab content */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-        {activeTab === 'overview' && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-slate-800">Personal Information</h2>
-              {!editing && (
-                <button onClick={() => setEditing(true)} className="text-blue-600 text-sm font-bold bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition">Edit</button>
-              )}
-            </div>
-            {message && <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-xl border border-green-200 text-sm">{message}</div>}
-            {editing ? (
-              <form onSubmit={handleUpdate} className="space-y-4 max-w-md">
-                <div className="grid grid-cols-2 gap-4">
-                  {[['firstName', 'First Name'], ['lastName', 'Last Name']].map(([k, label]) => (
-                    <div key={k}>
-                      <label className="block text-sm font-bold text-slate-700 mb-1">{label}</label>
-                      <input value={(formData as any)[k]} onChange={e => setFormData(f => ({ ...f, [k]: e.target.value }))}
-                        className="w-full border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 text-sm" />
-                    </div>
-                  ))}
+          {/* Main Content Area */}
+          <section className="lg:col-span-9 bg-surface-container-lowest rounded-3xl border border-surface-container p-10 shadow-editorial-shadow min-h-[600px]">
+            {activeTab === 'overview' && (
+              <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="flex justify-between items-center mb-10 pb-6 border-b border-surface-container">
+                  <h2 className="text-2xl font-black text-primary font-headline tracking-tight">Identity Details</h2>
+                  {!editing && (
+                    <button 
+                      onClick={() => setEditing(true)} 
+                      className="flex items-center gap-2 bg-surface-container hover:bg-surface-container-high px-6 py-2.5 rounded-xl text-sm font-bold transition-all"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">edit_note</span>
+                      Edit Identity
+                    </button>
+                  )}
                 </div>
-                <div className="flex gap-3">
-                  <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded-xl hover:bg-blue-700 transition">Save</button>
-                  <button type="button" onClick={() => setEditing(false)} className="border border-slate-200 font-bold py-2 px-6 rounded-xl hover:bg-slate-50">Cancel</button>
-                </div>
-              </form>
-            ) : (
-              <div className="grid grid-cols-2 gap-6 max-w-md">
-                {[['First Name', profile.firstName], ['Last Name', profile.lastName], ['Email', profile.email], ['Status', profile.accountStatus]].map(([label, val]) => (
-                  <div key={label}>
-                    <span className="block text-xs text-slate-500 font-medium mb-1">{label}</span>
-                    <span className="block text-slate-800 font-bold">{val}</span>
+
+                {message && (
+                  <div className="mb-8 p-4 bg-secondary-fixed/30 text-on-secondary-fixed-variant rounded-2xl border border-secondary-fixed font-bold text-sm flex items-center gap-3">
+                    <span className="material-symbols-outlined">verified</span>
+                    {message}
                   </div>
-                ))}
+                )}
+
+                {editing ? (
+                  <form onSubmit={handleUpdate} className="space-y-8 max-w-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {[
+                        { id: 'firstName', label: 'First Name' },
+                        { id: 'lastName', label: 'Last Name' }
+                      ].map(field => (
+                        <div key={field.id}>
+                          <label className="block text-xs font-black text-on-surface-variant uppercase tracking-widest mb-3">{field.label}</label>
+                          <input 
+                            value={(formData as any)[field.id]} 
+                            onChange={e => setFormData(f => ({ ...f, [field.id]: e.target.value }))}
+                            className="w-full bg-surface-container-low border-2 border-transparent focus:border-primary rounded-2xl px-6 py-4 text-sm font-bold transition-all outline-none"
+                            required
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-4 pt-4">
+                      <button type="submit" className="flex-1 bg-primary text-on-primary py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:opacity-90 transition-all">
+                        Update Identity
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setEditing(false)} 
+                        className="flex-1 border-2 border-surface-container py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-surface-container-low transition-all"
+                      >
+                        Discard
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    {[
+                      { label: 'Official First Name', val: profile.firstName },
+                      { label: 'Official Last Name', val: profile.lastName },
+                      { label: 'Registered Email', val: profile.email },
+                      { label: 'Global Role', val: profile.role },
+                      { label: 'Account Authority', val: profile.accountStatus },
+                      { label: 'Member Since', val: new Date(profile.createdAt).toLocaleDateString() }
+                    ].map(item => (
+                      <div key={item.label} className="group">
+                        <span className="block text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-2">{item.label}</span>
+                        <span className="block text-lg font-extrabold text-primary group-hover:translate-x-1 transition-transform">{item.val}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
-        {activeTab === 'pets'      && <MyPetsTab    userId={userId} />}
-        {activeTab === 'posts'     && <MyPostsTab   userId={userId} />}
-        {activeTab === 'adoptions' && <AdoptionsTab userId={userId} />}
-        {activeTab === 'reviews'   && <ReviewsTab   userId={userId} />}
-        {activeTab === 'settings'  && <SettingsTab  userId={userId} />}
+
+            {activeTab === 'pets'      && <MyPetsTab      userId={userId} />}
+            {activeTab === 'posts'     && <MyPostsTab     userId={userId} />}
+            {activeTab === 'favourites' && <FavouritesTab userId={userId} />}
+            {activeTab === 'adoptions' && <AdoptionsTab  userId={userId} />}
+            {activeTab === 'reviews'   && <ReviewsTab     userId={userId} />}
+            {activeTab === 'users'     && <UsersTab />}
+            {activeTab === 'settings'  && <SettingsTab   userId={userId} />}
+          </section>
+        </div>
       </div>
     </main>
   );

@@ -25,7 +25,7 @@ public class FavouriteRepository : IFavouriteRepository
     {
         return await _context.Favourites
             .Include(f => f.User)
-            .Include(f => f.Post)
+            .Include(f => f.Pet)
             .FirstOrDefaultAsync(f => f.Id == id);
     }
 
@@ -48,37 +48,37 @@ public class FavouriteRepository : IFavouriteRepository
     public async Task<List<Favourite>> GetFavouritesByUserIdAsync(string userId)
     {
         return await _context.Favourites
-            .Include(f => f.Post)
+            .Include(f => f.Pet)
             .Include(f => f.User)
             .Where(f => f.UserId == userId)
             .OrderByDescending(f => f.CreatedAt)
             .ToListAsync();
     }
 
-    public async Task<List<Favourite>> GetFavouritesByPostIdAsync(string postId)
+    public async Task<List<Favourite>> GetFavouritesByPetIdAsync(string petId)
     {
         return await _context.Favourites
             .Include(f => f.User)
-            .Where(f => f.PostId == postId)
+            .Where(f => f.PetId == petId)
             .ToListAsync();
     }
 
-    public async Task<Favourite?> GetFavouriteByUserAndPostAsync(string userId, string postId)
+    public async Task<Favourite?> GetFavouriteByUserAndPetAsync(string userId, string petId)
     {
         return await _context.Favourites
-            .FirstOrDefaultAsync(f => f.UserId == userId && f.PostId == postId);
+            .FirstOrDefaultAsync(f => f.UserId == userId && f.PetId == petId);
     }
 
-    public async Task<bool> ExistsAsync(string userId, string postId)
+    public async Task<bool> ExistsAsync(string userId, string petId)
     {
         return await _context.Favourites
-            .AnyAsync(f => f.UserId == userId && f.PostId == postId);
+            .AnyAsync(f => f.UserId == userId && f.PetId == petId);
     }
 
-    public async Task<int> GetFavouriteCountByPostAsync(string postId)
+    public async Task<int> GetFavouriteCountByPetAsync(string petId)
     {
         return await _context.Favourites
-            .CountAsync(f => f.PostId == postId);
+            .CountAsync(f => f.PetId == petId);
     }
 
     public async Task<int> GetFavouriteCountByUserAsync(string userId)
@@ -97,10 +97,10 @@ public class FavouriteRepository : IFavouriteRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAllByPostIdAsync(string postId)
+    public async Task DeleteAllByPetIdAsync(string petId)
     {
         var favourites = await _context.Favourites
-            .Where(f => f.PostId == postId)
+            .Where(f => f.PetId == petId)
             .ToListAsync();
         
         _context.Favourites.RemoveRange(favourites);
@@ -110,8 +110,7 @@ public class FavouriteRepository : IFavouriteRepository
     public async Task<List<Favourite>> GetFavouritesWithIncludesAsync(string userId)
     {
         return await _context.Favourites
-            .Include(f => f.Post)
-                .ThenInclude(p => p.Pet)
+            .Include(f => f.Pet)
             .Include(f => f.User)
             .Where(f => f.UserId == userId)
             .OrderByDescending(f => f.CreatedAt)

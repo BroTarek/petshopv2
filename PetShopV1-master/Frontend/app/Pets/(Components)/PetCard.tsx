@@ -1,5 +1,6 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import api from '@/utils/axios';
 
 interface Pet {
     id: string;
@@ -21,8 +22,60 @@ type PetCardProps = {
 }
 
 const PetCard = ({ Props }: PetCardProps) => {
-    const [isFav, setIsFav] = React.useState(false);
-    console.log(Props)
+    const [isFav, setIsFav] = useState(false);
+    const [favId, setFavId] = useState<string | null>(null);
+    const [loadingFav, setLoadingFav] = useState(false);
+
+    useEffect(() => {
+        const checkFav = async () => {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) return;
+            const user = JSON.parse(userStr);
+            const userId = user.userId || user.UserId || user.Id || user.id;
+            
+            try {
+                const res = await api.get(`/Favourite/check?userId=${userId}&petId=${Props.id}`);
+                if (res.data.IsFavourited || res.data.isFavourited) {
+                    setIsFav(true);
+                    setFavId(res.data.FavouriteId || res.data.favouriteId);
+                }
+            } catch (err) {
+                console.error('Failed to check favourite status', err);
+            }
+        };
+        checkFav();
+    }, [Props.id]);
+
+    const toggleFav = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const userStr = localStorage.getItem('user');
+        if (!userStr) {
+            alert('Please login to add to favourites');
+            return;
+        }
+        const user = JSON.parse(userStr);
+        const userId = user.userId || user.UserId || user.Id || user.id;
+
+        setLoadingFav(true);
+        try {
+            if (isFav && favId) {
+                await api.delete(`/Favourite/remove/${favId}?userId=${userId}`);
+                setIsFav(false);
+                setFavId(null);
+            } else {
+                const res = await api.post('/Favourite/add', { userId, petId: Props.id });
+                setIsFav(true);
+                setFavId(res.data.FavouriteId || res.data.favouriteId);
+            }
+        } catch (err: any) {
+            alert(err.response?.data?.Error || 'Failed to update favourite');
+        } finally {
+            setLoadingFav(false);
+        }
+    };
+
     return (
         <div className="group relative bg-surface-container-lowest rounded-lg overflow-hidden flex flex-col transition-all duration-300 hover:shadow-editorial-hover">
             <div className="relative h-80 overflow-hidden bg-slate-100 flex items-center justify-center">
@@ -41,12 +94,9 @@ const PetCard = ({ Props }: PetCardProps) => {
                     </span>
                 </div>
                 <button 
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setIsFav(!isFav);
-                    }}
-                    className={`absolute bottom-4 right-4 bg-surface p-3 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all translate-y-4 group-hover:translate-y-0 hover:scale-110 ${isFav ? 'text-red-500' : 'text-primary hover:text-red-500'}`}
+                    onClick={toggleFav}
+                    disabled={loadingFav}
+                    className={`absolute bottom-4 right-4 bg-surface p-3 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all translate-y-4 group-hover:translate-y-0 hover:scale-110 ${isFav ? 'text-red-500' : 'text-primary hover:text-red-500'} ${loadingFav ? 'animate-pulse' : ''}`}
                 >
                     <span className="material-symbols-outlined" style={{ fontVariationSettings: isFav ? "'FILL' 1" : "'FILL' 0" }}>
                         favorite

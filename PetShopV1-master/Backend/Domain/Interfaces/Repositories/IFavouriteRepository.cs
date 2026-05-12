@@ -12,14 +12,14 @@ public interface IFavouriteRepository
     
     // Query Methods
     Task<List<Favourite>> GetFavouritesByUserIdAsync(string userId);
-    Task<List<Favourite>> GetFavouritesByPostIdAsync(string postId);
-    Task<Favourite?> GetFavouriteByUserAndPostAsync(string userId, string postId);
-    Task<bool> ExistsAsync(string userId, string postId);
-    Task<int> GetFavouriteCountByPostAsync(string postId);
+    Task<List<Favourite>> GetFavouritesByPetIdAsync(string petId);
+    Task<Favourite?> GetFavouriteByUserAndPetAsync(string userId, string petId);
+    Task<bool> ExistsAsync(string userId, string petId);
+    Task<int> GetFavouriteCountByPetAsync(string petId);
     Task<int> GetFavouriteCountByUserAsync(string userId);
     
     // Bulk Operations
     Task DeleteAllByUserIdAsync(string userId);
-    Task DeleteAllByPostIdAsync(string postId);
+    Task DeleteAllByPetIdAsync(string petId);
     Task<List<Favourite>> GetFavouritesWithIncludesAsync(string userId);
 }

@@ -62,8 +62,7 @@ public class UserRepository : IUserRepository
             .Include(u => u.AdoptionRequestsInitiated)
             .Include(u => u.AdoptionRequestsReceived)
             .Include(u => u.Favourites)
-                .ThenInclude(f => f.Post)
-                    .ThenInclude(p => p.Pet)
+                .ThenInclude(f => f.Pet)
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 
@@ -77,8 +76,7 @@ public class UserRepository : IUserRepository
             .Include(u => u.AdoptionRequestsInitiated)
             .Include(u => u.AdoptionRequestsReceived)
             .Include(u => u.Favourites)
-                .ThenInclude(f => f.Post)
-                    .ThenInclude(p => p.Pet)
+                .ThenInclude(f => f.Pet)
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
@@ -137,7 +135,7 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users
             .Include(u => u.Favourites)
-                .ThenInclude(f => f.Post)
+                .ThenInclude(f => f.Pet)
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
 
@@ -161,8 +159,7 @@ public class UserRepository : IUserRepository
             .Include(u => u.AdoptionRequestsReceived)
                 .ThenInclude(ar => ar.Initiator)
             .Include(u => u.Favourites)
-                .ThenInclude(f => f.Post)
-                    .ThenInclude(p => p.Pet)
+                .ThenInclude(f => f.Pet)
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
 

@@ -27,6 +27,4 @@ public class Post
     public bool IsActive { get; set; } = true;
     public bool IsDeleted { get; set; } = false;
     
-    // Navigation properties
-    public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
 }

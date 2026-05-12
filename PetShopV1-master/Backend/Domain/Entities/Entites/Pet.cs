@@ -25,4 +25,5 @@ public class Pet
     
     // All adoption requests for this pet
     public virtual ICollection<AdoptionRequest> AdoptionRequests { get; set; } = new List<AdoptionRequest>();
+    public virtual ICollection<Favourite> Favourites { get; set; } = new List<Favourite>();
 }

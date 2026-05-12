@@ -16,7 +16,10 @@ const ProfileStats = () => {
     setUser(u);
 
     const uid = u.UserId || u.userId || u.Id || u.id;
-    if (!uid) return;
+    if (!uid) {
+        console.warn("ProfileStats: No User ID found in storage");
+        return;
+    }
 
     api.get(`/Post/user/${uid}/count`)
       .then(r => {
