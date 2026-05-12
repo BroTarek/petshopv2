@@ -60,6 +60,12 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Favourite>()
             .HasIndex(f => new { f.UserId, f.PostId }).IsUnique();
 
+        modelBuilder.Entity<Favourite>()
+            .HasOne(f => f.Post)
+            .WithMany(p => p.Favourites)
+            .HasForeignKey(f => f.PostId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         modelBuilder.Entity<Post>()
             .HasOne(p => p.User)
             .WithMany(u => u.Posts)

@@ -19,11 +19,19 @@ const ProfileStats = () => {
     if (!uid) return;
 
     api.get(`/Post/user/${uid}/count`)
-      .then(r => { if (r.data.Success) setPostCount(r.data.PostCount); })
+      .then(r => {
+        if (r.data.success || r.data.Success) {
+          setPostCount(r.data.postCount || r.data.PostCount || 0);
+        }
+      })
       .catch(() => {});
 
     api.get(`/Favourite/user/${uid}/detailed`)
-      .then(r => { if (r.data.Success) setFavCount(r.data.TotalFavourites); })
+      .then(r => {
+        if (r.data.success || r.data.Success) {
+          setFavCount(r.data.totalFavourites || r.data.TotalFavourites || 0);
+        }
+      })
       .catch(() => {});
   }, []);
 

@@ -95,9 +95,9 @@ public class FavouriteController : ControllerBase
             {
                 FavouriteId = f.Id,
                 PostId = f.PostId,
-                PetName = f.Post?.Pet?.Name ?? "Unknown Pet",
+                PostTitle = f.Post?.Title ?? "Unknown Post",
                 FavouritedAt = f.CreatedAt,
-                PostTitle = f.Post?.Title ?? string.Empty
+                PetName = f.Post?.Pet?.Name ?? string.Empty
             });
             
             return Ok(new
@@ -195,7 +195,7 @@ public class FavouriteController : ControllerBase
     }
 
     /// <summary>
-    /// Get detailed favourites with post and pet information
+    /// Get detailed favourites with post information
     /// </summary>
     [HttpGet("user/{userId}/detailed")]
     public async Task<IActionResult> GetUserFavouritesDetailed(string userId)
@@ -204,18 +204,18 @@ public class FavouriteController : ControllerBase
         {
             var favourites = await _favouriteService.GetFavouritesWithDetailsAsync(userId);
             
-            var response = favourites.Select(f => new FavouriteResponseVM
+            var response = favourites.Select(f => new 
             {
                 FavouriteId = f.Id,
                 UserId = f.UserId,
                 UserName = $"{f.User?.FirstName} {f.User?.LastName}",
                 PostId = f.PostId,
-                PetName = f.Post?.Pet?.Name ?? "Unknown",
-                PetImageUrl = f.Post?.Pet?.Images.FirstOrDefault() ?? string.Empty,
+                PostTitle = f.Post?.Title ?? "Unknown",
+                PostDescription = f.Post?.Description ?? string.Empty,
                 PostImageUrl = f.Post?.ImageUrl ?? string.Empty,
-                FavouritedAt = f.CreatedAt,
-                PostTitle = f.Post?.Title ?? string.Empty,
-                PostContent = f.Post?.Content ?? string.Empty
+                PetName = f.Post?.Pet?.Name ?? string.Empty,
+                PetType = f.Post?.Pet?.Type ?? string.Empty,
+                FavouritedAt = f.CreatedAt
             });
             
             return Ok(new

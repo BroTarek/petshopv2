@@ -17,109 +17,237 @@ function AdminPanel() {
   const [pendingPosts, setPendingPosts] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const load = async (t: typeof tab) => {
     setLoading(true);
     try {
       if (t === 'stats') {
         const r = await api.get('/admin/dashboard/stats');
-        if (r.data.Success) setStats(r.data.Statistics);
+        if (r.data.success || r.data.Success) {
+          setStats(r.data.statistics || r.data.Statistics);
+        }
       } else if (t === 'users') {
         const r = await api.get('/admin/users/pending');
-        if (r.data.Success) setPendingUsers(r.data.Users);
+        if (r.data.success || r.data.Success) {
+          setPendingUsers(r.data.users || r.data.Users || []);
+        }
       } else {
         const r = await api.get('/admin/posts/pending');
-        if (r.data.Success) setPendingPosts(r.data.Posts);
+        if (r.data.success || r.data.Success) {
+          setPendingPosts(r.data.posts || r.data.Posts || []);
+        }
       }
-    } catch {}
-    finally { setLoading(false); }
+    } catch (err: any) {
+      console.error('Failed to load admin data', err);
+    } finally { setLoading(false); }
   };
 
   useEffect(() => { load(tab); }, [tab]);
 
-  const userAction = async (userId: string, action: 'approve' | 'reject') => {
+  const userAction = async (userId: string, action: 'approve' | 'reject' | 'delete') => {
+    if (action === 'delete' || action === 'reject') {
+      if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+    }
+    
+    setActionLoading(`${userId}-${action}`);
     try {
-      await api.put(`/admin/users/${userId}/${action}`);
+      if (action === 'delete') {
+        await api.delete(`/admin/users/${userId}`);
+      } else {
+        await api.put(`/admin/users/${userId}/${action}`);
+      }
       setPendingUsers(u => u.filter(x => x.userId !== userId));
-    } catch { alert(`Failed to ${action}.`); }
+      // Refresh stats if we approved/rejected
+      if (tab === 'stats') load('stats');
+    } catch (err: any) {
+      alert(err.response?.data?.Error || `Failed to ${action} user.`);
+    } finally { setActionLoading(null); }
   };
 
-  const postAction = async (postId: string, action: 'approve' | 'reject') => {
+  const postAction = async (postId: string, action: 'approve' | 'reject' | 'delete') => {
+    if (action === 'delete' || action === 'reject') {
+      if (!confirm(`Are you sure you want to ${action} this post?`)) return;
+    }
+
+    setActionLoading(`${postId}-${action}`);
     try {
-      await api.put(`/admin/posts/${postId}/${action}`);
+      if (action === 'delete') {
+        await api.delete(`/admin/posts/${postId}`);
+      } else {
+        await api.put(`/admin/posts/${postId}/${action}`);
+      }
       setPendingPosts(p => p.filter(x => x.postId !== postId));
-    } catch { alert(`Failed to ${action}.`); }
+      // Refresh stats if we approved/rejected
+      if (tab === 'stats') load('stats');
+    } catch (err: any) {
+      alert(err.response?.data?.Error || `Failed to ${action} post.`);
+    } finally { setActionLoading(null); }
   };
+
+  const StatCard = ({ title, value, icon, color }: { title: string, value: any, icon: string, color: string }) => (
+    <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+      <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center mb-4`}>
+        <span className="material-symbols-outlined text-white">{icon}</span>
+      </div>
+      <p className="text-3xl font-black text-slate-800">{value}</p>
+      <p className="text-sm font-medium text-slate-500 mt-1 capitalize">{title.replace(/([A-Z])/g, ' $1').trim()}</p>
+    </div>
+  );
 
   return (
-    <div className="mt-10 bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
-      <div className="bg-amber-50 px-6 py-4 border-b border-amber-100 flex items-center gap-2">
-        <span className="material-symbols-outlined text-amber-600">admin_panel_settings</span>
-        <h2 className="font-bold text-amber-800 text-lg">Admin Panel</h2>
+    <div className="mt-12 bg-slate-50 rounded-3xl border border-slate-200 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+            <span className="material-symbols-outlined text-white text-2xl">admin_panel_settings</span>
+          </div>
+          <div>
+            <h2 className="font-bold text-white text-xl tracking-tight">Administrative Command Center</h2>
+            <p className="text-amber-100 text-xs font-medium opacity-80 uppercase tracking-widest">Global Management & Oversight</p>
+          </div>
+        </div>
+        <button onClick={() => load(tab)} className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors text-white">
+          <span className={`material-symbols-outlined ${loading ? 'animate-spin' : ''}`}>refresh</span>
+        </button>
       </div>
-      <div className="p-6">
-        <div className="flex gap-2 mb-6">
-          {([['stats','Stats'],['users','Pending Users'],['posts','Pending Posts']] as const).map(([k, label]) => (
+
+      <div className="p-8">
+        <div className="flex gap-2 mb-8 bg-slate-200/50 p-1 rounded-2xl w-fit">
+          {(['stats', 'users', 'posts'] as const).map((k) => (
             <button key={k} onClick={() => setTab(k)}
-              className={`px-4 py-2 rounded-full text-sm font-bold transition ${tab === k ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-              {label}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
+                tab === k 
+                ? 'bg-white text-slate-800 shadow-sm' 
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+              }`}>
+              {k.charAt(0).toUpperCase() + k.slice(1)}
             </button>
           ))}
         </div>
 
-        {loading ? <div className="py-8 text-center text-slate-400">Loading...</div> : (
-          <>
+        {loading && !stats && !pendingUsers.length && !pendingPosts.length ? (
+          <div className="py-20 text-center">
+            <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-400 font-medium">Synchronizing data...</p>
+          </div>
+        ) : (
+          <div className="min-h-[400px]">
             {tab === 'stats' && stats && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(stats).map(([k, v]: any) => (
-                  <div key={k} className="bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
-                    <p className="text-2xl font-black text-blue-600">{v}</p>
-                    <p className="text-xs text-slate-500 mt-1 capitalize">{k.replace(/([A-Z])/g,' $1').trim()}</p>
-                  </div>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in zoom-in-95 duration-500">
+                <StatCard title="Total Users" value={stats.totalUsers} icon="group" color="bg-blue-500" />
+                <StatCard title="Total Pets" value={stats.totalPets} icon="pets" color="bg-green-500" />
+                <StatCard title="Total Posts" value={stats.totalPosts} icon="article" color="bg-purple-500" />
+                <StatCard title="Pending Users" value={stats.pendingUsers} icon="person_add" color="bg-amber-500" />
+                <StatCard title="Pending Posts" value={stats.pendingPosts} icon="pending_actions" color="bg-orange-500" />
+                <StatCard title="Approved Pets" value={stats.approvedPets} icon="check_circle" color="bg-emerald-500" />
               </div>
             )}
 
             {tab === 'users' && (
-              <div className="space-y-3">
-                {pendingUsers.length === 0 ? <p className="text-slate-400 text-center py-6">No pending users 🎉</p> :
+              <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
+                {pendingUsers.length === 0 ? (
+                  <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+                    <span className="material-symbols-outlined text-5xl text-slate-200 mb-2">person_off</span>
+                    <p className="text-slate-400 font-medium">No pending user registrations</p>
+                  </div>
+                ) : (
                   pendingUsers.map(u => (
-                    <div key={u.userId} className="flex items-center justify-between bg-slate-50 rounded-xl p-4 border border-slate-100">
-                      <div>
-                        <p className="font-bold text-slate-800 text-sm">{u.firstName} {u.lastName}</p>
-                        <p className="text-xs text-slate-500">{u.email} · {u.role}</p>
+                    <div key={u.userId} className="group flex flex-col md:flex-row items-start md:items-center justify-between bg-white rounded-2xl p-5 border border-slate-100 hover:border-amber-200 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold group-hover:bg-amber-50 group-hover:text-amber-500 transition-colors">
+                          {u.firstName[0]}{u.lastName[0]}
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-800">{u.firstName} {u.lastName}</p>
+                          <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[14px]">mail</span> {u.email}
+                            <span className="text-slate-300">|</span>
+                            <span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">{u.role}</span>
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-1 italic">Joined {new Date(u.createdAt).toLocaleDateString()}</p>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => userAction(u.userId, 'approve')} className="text-xs font-bold bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700">Approve</button>
-                        <button onClick={() => userAction(u.userId, 'reject')} className="text-xs font-bold bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600">Reject</button>
+                      <div className="flex gap-2 mt-4 md:mt-0 w-full md:w-auto">
+                        <button 
+                          onClick={() => userAction(u.userId, 'approve')} 
+                          disabled={actionLoading === `${u.userId}-approve`}
+                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-emerald-600 text-white px-4 py-2.5 rounded-xl hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50">
+                          {actionLoading === `${u.userId}-approve` ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <span className="material-symbols-outlined text-[16px]">check</span>}
+                          Approve
+                        </button>
+                        <button 
+                          onClick={() => userAction(u.userId, 'reject')} 
+                          disabled={actionLoading === `${u.userId}-reject`}
+                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-rose-500 text-white px-4 py-2.5 rounded-xl hover:bg-rose-600 active:scale-95 transition-all disabled:opacity-50">
+                          {actionLoading === `${u.userId}-reject` ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <span className="material-symbols-outlined text-[16px]">close</span>}
+                          Reject
+                        </button>
+                        <button 
+                          onClick={() => userAction(u.userId, 'delete')} 
+                          disabled={actionLoading === `${u.userId}-delete`}
+                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-slate-100 text-slate-600 px-4 py-2.5 rounded-xl hover:bg-slate-200 hover:text-rose-600 active:scale-95 transition-all disabled:opacity-50">
+                          <span className="material-symbols-outlined text-[16px]">delete</span>
+                        </button>
                       </div>
                     </div>
                   ))
-                }
+                )}
               </div>
             )}
 
             {tab === 'posts' && (
-              <div className="space-y-3">
-                {pendingPosts.length === 0 ? <p className="text-slate-400 text-center py-6">No pending posts 🎉</p> :
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                {pendingPosts.length === 0 ? (
+                  <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+                    <span className="material-symbols-outlined text-5xl text-slate-200 mb-2">article_off</span>
+                    <p className="text-slate-400 font-medium">No pending community posts</p>
+                  </div>
+                ) : (
                   pendingPosts.map(p => (
-                    <div key={p.postId} className="flex items-center justify-between bg-slate-50 rounded-xl p-4 border border-slate-100">
-                      <div>
-                        <p className="font-bold text-slate-800 text-sm">{p.title}</p>
-                        <p className="text-xs text-slate-500">{p.ownerName} · {p.petType}</p>
+                    <div key={p.postId} className="group flex flex-col md:flex-row items-start md:items-center justify-between bg-white rounded-2xl p-5 border border-slate-100 hover:border-amber-200 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-amber-50 group-hover:text-amber-500 transition-colors">
+                          <span className="material-symbols-outlined text-3xl">description</span>
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-800">{p.title}</p>
+                          <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                            <span className="font-bold text-slate-700">{p.ownerName}</span>
+                            <span className="text-slate-300">·</span>
+                            <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">pets</span> {p.petType}</span>
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-1">Submitted {new Date(p.creationDate).toLocaleDateString()}</p>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => postAction(p.postId, 'approve')} className="text-xs font-bold bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700">Approve</button>
-                        <button onClick={() => postAction(p.postId, 'reject')} className="text-xs font-bold bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600">Reject</button>
-                        <button onClick={async () => { await api.delete(`/admin/posts/${p.postId}`); setPendingPosts(x => x.filter(y => y.postId !== p.postId)); }}
-                          className="text-xs font-bold bg-slate-500 text-white px-3 py-1.5 rounded-lg hover:bg-slate-600">Delete</button>
+                      <div className="flex gap-2 mt-4 md:mt-0 w-full md:w-auto">
+                        <button 
+                          onClick={() => postAction(p.postId, 'approve')} 
+                          disabled={actionLoading === `${p.postId}-approve`}
+                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-emerald-600 text-white px-4 py-2.5 rounded-xl hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50">
+                          {actionLoading === `${p.postId}-approve` ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <span className="material-symbols-outlined text-[16px]">check</span>}
+                          Approve
+                        </button>
+                        <button 
+                          onClick={() => postAction(p.postId, 'reject')} 
+                          disabled={actionLoading === `${p.postId}-reject`}
+                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-rose-500 text-white px-4 py-2.5 rounded-xl hover:bg-rose-600 active:scale-95 transition-all disabled:opacity-50">
+                          {actionLoading === `${p.postId}-reject` ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <span className="material-symbols-outlined text-[16px]">close</span>}
+                          Reject
+                        </button>
+                        <button 
+                          onClick={() => postAction(p.postId, 'delete')} 
+                          disabled={actionLoading === `${p.postId}-delete`}
+                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-slate-100 text-slate-600 px-4 py-2.5 rounded-xl hover:bg-slate-200 hover:text-rose-600 active:scale-95 transition-all disabled:opacity-50">
+                          <span className="material-symbols-outlined text-[16px]">delete</span>
+                        </button>
                       </div>
                     </div>
                   ))
-                }
+                )}
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>

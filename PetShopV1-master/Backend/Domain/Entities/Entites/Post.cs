@@ -13,8 +13,8 @@ public class Post
     public string ImageUrl { get; set; } = string.Empty;
     
     // Associations
-    public string PetId { get; set; } = string.Empty;
-    public virtual Pet Pet { get; set; } = null!;
+    public string? PetId { get; set; }
+    public virtual Pet? Pet { get; set; }
     
     public string UserId { get; set; } = string.Empty;
     public virtual User User { get; set; } = null!;

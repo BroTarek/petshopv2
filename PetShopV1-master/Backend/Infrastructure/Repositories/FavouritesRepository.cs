@@ -26,7 +26,6 @@ public class FavouriteRepository : IFavouriteRepository
         return await _context.Favourites
             .Include(f => f.User)
             .Include(f => f.Post)
-            .ThenInclude(p => p.Pet)
             .FirstOrDefaultAsync(f => f.Id == id);
     }
 
@@ -50,7 +49,6 @@ public class FavouriteRepository : IFavouriteRepository
     {
         return await _context.Favourites
             .Include(f => f.Post)
-                .ThenInclude(p => p.Pet)
             .Include(f => f.User)
             .Where(f => f.UserId == userId)
             .OrderByDescending(f => f.CreatedAt)
@@ -114,8 +112,6 @@ public class FavouriteRepository : IFavouriteRepository
         return await _context.Favourites
             .Include(f => f.Post)
                 .ThenInclude(p => p.Pet)
-            .Include(f => f.Post)
-                .ThenInclude(p => p.User)  // Post owner
             .Include(f => f.User)
             .Where(f => f.UserId == userId)
             .OrderByDescending(f => f.CreatedAt)

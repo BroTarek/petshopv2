@@ -33,7 +33,7 @@ const Post = ({ post: rawPost, onDeleted }: PostProps) => {
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
-    if (!userStr) return;
+    if (!userStr || !post.postId) return;
     const u = JSON.parse(userStr);
     const uid = u.UserId || u.userId || u.Id || u.id;
     setCurrentUserId(uid);
@@ -42,16 +42,16 @@ const Post = ({ post: rawPost, onDeleted }: PostProps) => {
     // Check if already favourited
     api.get(`/Favourite/check?userId=${uid}&postId=${post.postId}`)
       .then(r => {
-        if (r.data.IsFavourited) {
+        if (r.data.IsFavourited || r.data.isFavourited) {
           setIsFav(true);
-          setFavId(r.data.FavouriteId);
+          setFavId(r.data.FavouriteId || r.data.favouriteId);
         }
       })
       .catch(() => {});
   }, [post.postId]);
 
   const toggleFav = async () => {
-    if (favLoading || !currentUserId) return;
+    if (favLoading || !currentUserId || !post.postId) return;
     setFavLoading(true);
     try {
       if (isFav && favId) {
@@ -63,9 +63,9 @@ const Post = ({ post: rawPost, onDeleted }: PostProps) => {
           userId: currentUserId,
           postId: post.postId,
         });
-        if (res.data.Success) {
+        if (res.data.Success || res.data.success) {
           setIsFav(true);
-          setFavId(res.data.FavouriteId);
+          setFavId(res.data.FavouriteId || res.data.favouriteId);
         }
       }
     } catch (e) {
@@ -180,14 +180,14 @@ const Post = ({ post: rawPost, onDeleted }: PostProps) => {
         <button
           onClick={toggleFav}
           disabled={favLoading || !currentUserId}
-          title={isFav ? 'Remove from favourites' : 'Save to favourites'}
+          title={isFav ? 'Remove from favourites' : 'Love this post'}
           className={`transition-all ${favLoading ? 'opacity-50' : 'hover:scale-110'}`}
         >
           <span
-            className={`material-symbols-outlined ${isFav ? 'text-blue-600' : 'text-primary'}`}
+            className={`material-symbols-outlined ${isFav ? 'text-red-500' : 'text-primary'}`}
             style={{ fontVariationSettings: isFav ? "'FILL' 1" : "'FILL' 0" }}
           >
-            bookmark
+            favorite
           </span>
         </button>
       </div>

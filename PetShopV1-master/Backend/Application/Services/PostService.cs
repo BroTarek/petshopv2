@@ -63,13 +63,13 @@ public class PostService
             Description = request.Description,
             Content = request.Content,
             ImageUrl = imageUrl,
-            PetId = request.PetId,
-            Pet = pet!,
+            PetId = string.IsNullOrEmpty(request.PetId) ? null : request.PetId,
+            Pet = pet,
             UserId = request.UserId,
             User = user,
             CreationDate = DateTime.UtcNow,
             LastModified = DateTime.UtcNow,
-            IsActive = true,
+            IsActive = false,
             IsDeleted = false
         };
         

@@ -9,6 +9,7 @@ const FeaturedPetsSection = () => {
   useEffect(() => {
     api.get('/Pet/available')
       .then(r => {
+        console.log(r)
         const ok = r.data.Success || r.data.success;
         const pts = r.data.Pets || r.data.pets;
         if (ok) setPets((pts || []).slice(0, 3));

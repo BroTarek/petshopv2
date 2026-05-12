@@ -57,7 +57,12 @@ export default function CreatePostPage() {
         try {
             const fd = new FormData();
             fd.append('UserId', userId);
-            fd.append('PetId', formData.petId);
+            
+            // Only append PetId if it's not empty to avoid 400 validation errors
+            if (formData.petId) {
+                fd.append('PetId', formData.petId);
+            }
+            
             fd.append('Title', formData.title);
             fd.append('Description', formData.description);
             fd.append('Content', formData.content);
@@ -69,10 +74,12 @@ export default function CreatePostPage() {
             if (ok) {
                 router.push('/Posts');
             } else {
-                setError(response.data.Error || 'Failed to create post');
+                setError(response.data.Error || response.data.error || response.data.Message || 'Failed to create post');
             }
         } catch (err: any) {
-            setError(err.response?.data?.Error || err.message || 'An error occurred');
+            console.error('Post creation error details:', err.response?.data);
+            const msg = err.response?.data?.Error || err.response?.data?.error || err.response?.data?.title || err.message || 'An error occurred';
+            setError(msg);
         } finally {
             setLoading(false);
         }

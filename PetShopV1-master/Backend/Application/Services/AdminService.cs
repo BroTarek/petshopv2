@@ -9,14 +9,14 @@ public class AdminService
 {
     private readonly IUserRepository _userRepository;
     private readonly IPostRepository _postRepository;
-    
+    private readonly IPetRepository _petRepository;
 
-    public AdminService(IUserRepository userRepository, IPostRepository postRepository)
+    public AdminService(IUserRepository userRepository, IPostRepository postRepository, IPetRepository petRepository)
     {
         _postRepository = postRepository;
         _userRepository = userRepository;
+        _petRepository = petRepository;
     }
-
 
     private async Task<User?> UpdateUserStatusAsync(string userId, AccountStatus status)
     {
@@ -89,10 +89,15 @@ public class AdminService
     {
         var users = await _userRepository.GetAllUsersAsync();
         var posts = await _postRepository.GetAllPostsAsync();
+        var pets = await _petRepository.GetAllPetsAsync();
         
         return new {
             TotalUsers = users.Count,
-            TotalPosts = posts.Count
+            TotalPosts = posts.Count,
+            TotalPets = pets.Count,
+            PendingUsers = users.Count(u => u.AccountStatus == AccountStatus.Pending),
+            PendingPosts = posts.Count(p => !p.IsActive && !p.IsDeleted),
+            ApprovedPets = pets.Count(p => p.Status == PetStatus.Available || p.Status == PetStatus.Adopted)
         };
     }
 

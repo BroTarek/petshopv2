@@ -8,9 +8,7 @@ export default function Home() {
     <>
       <HeroSection />
       <FeaturedPetsSection />
-      <FeaturedProducts />
-      <CommunitySection />
-      <Newsletter />
+      
     </>
   );
 }

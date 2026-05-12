@@ -24,5 +24,5 @@ public class Pet
     public User Owner { get; set; } = null!;
     
     // All adoption requests for this pet
-    public virtual ICollection<AdoptionRequest> AdoptionRequests { get; set; }
+    public virtual ICollection<AdoptionRequest> AdoptionRequests { get; set; } = new List<AdoptionRequest>();
 }

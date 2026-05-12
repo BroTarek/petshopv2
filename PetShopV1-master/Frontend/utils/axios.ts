@@ -2,9 +2,6 @@ import axios from 'axios';
 
 const api = axios.create({
     baseURL: 'http://localhost:5000/api', // Match backend C# API port
-    headers: {
-        'Content-Type': 'application/json',
-    },
 });
 
 // Request interceptor to attach JWT token

@@ -274,9 +274,12 @@ public class PostController : ControllerBase
                 Description = post.Description,
                 PetId = post.PetId,
                 PetName = post.Pet?.Name ?? "Unknown",
+                PetImageUrl = post.Pet?.Images.FirstOrDefault() ?? string.Empty,
+                ImageUrl = post.ImageUrl,
                 UserId = post.UserId,
                 UserName = $"{post.User?.FirstName} {post.User?.LastName}",
-                CreationDate = post.CreationDate
+                CreationDate = post.CreationDate,
+                FavouriteCount = post.Favourites?.Count ?? 0
             });
             
             return Ok(new

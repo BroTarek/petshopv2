@@ -13,9 +13,10 @@ const PostsPage = () => {
     useEffect(() => {
         const fetchPosts = async () => {
             try {
-                const response = await api.get('/Post/all');
-                if (response.data && response.data.Success) {
-                    const normalized = (response.data.Posts || []).map((p: any) => ({
+                const response = await api.get('/Post/active');
+                if (response.data && (response.data.success || response.data.Success)) {
+                    const rawPosts = response.data.posts || response.data.Posts || [];
+                    const normalized = rawPosts.map((p: any) => ({
                         ...p,
                         postId: p.postId || p.PostId || p.id || p.Id,
                         title: p.title || p.Title,

@@ -22,6 +22,7 @@ type PetCardProps = {
 
 const PetCard = ({ Props }: PetCardProps) => {
     const [isFav, setIsFav] = React.useState(false);
+    console.log(Props)
     return (
         <div className="group relative bg-surface-container-lowest rounded-lg overflow-hidden flex flex-col transition-all duration-300 hover:shadow-editorial-hover">
             <div className="relative h-80 overflow-hidden bg-slate-100 flex items-center justify-center">

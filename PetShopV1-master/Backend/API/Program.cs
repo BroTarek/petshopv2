@@ -12,6 +12,13 @@ using PetShop.BackendV2.API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Ensure wwwroot exists for static files at the very beginning
+var wwwrootPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot");
+if (!Directory.Exists(wwwrootPath)) Directory.CreateDirectory(wwwrootPath);
+if (!Directory.Exists(Path.Combine(wwwrootPath, "pets"))) Directory.CreateDirectory(Path.Combine(wwwrootPath, "pets"));
+if (!Directory.Exists(Path.Combine(wwwrootPath, "posts"))) Directory.CreateDirectory(Path.Combine(wwwrootPath, "posts"));
+builder.Environment.WebRootPath = wwwrootPath;
+
 // Add services to the container.
 builder.Services.AddControllers();
 // Add this with other service registrations
@@ -19,6 +26,10 @@ builder.Services.AddSignalR();
 // Add Application and Infrastructure services
 builder.Services.AddApplicationCore();
 builder.Services.AddInfrastructureCore();
+
+
+// builder.Services.AddScoped...
+
 builder.Services.AddScoped<IAdoptionNotificationService, AdoptionNotificationService>();
 builder.Services.AddAuthorization();
 

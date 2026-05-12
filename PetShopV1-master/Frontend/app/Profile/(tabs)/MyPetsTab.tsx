@@ -28,10 +28,10 @@ export default function MyPetsTab({ userId }: { userId: string }) {
             type: p.type || p.Type,
             age: p.age || p.Age,
             status: p.status || p.Status,
-            primaryImage: p.primaryImage || p.PrimaryImage 
-              ? ( (p.primaryImage || p.PrimaryImage).startsWith('http') ? (p.primaryImage || p.PrimaryImage) : `http://localhost:5000/${p.primaryImage || p.PrimaryImage}` )
-              : (p.images && p.images[0]) || (p.Images && p.Images[0])
-                ? ( ((p.images && p.images[0]) || (p.Images && p.Images[0])).startsWith('http') ? ((p.images && p.images[0]) || (p.Images && p.Images[0])) : `http://localhost:5000/${(p.images && p.images[0]) || (p.Images && p.Images[0])}` )
+            primaryImage: (p.primaryImage || p.PrimaryImage)
+              ? ((p.primaryImage || p.PrimaryImage).startsWith('http') ? (p.primaryImage || p.PrimaryImage) : `http://localhost:5000/${(p.primaryImage || p.PrimaryImage)}`)
+              : (p.images?.[0] || p.Images?.[0])
+                ? ((p.images?.[0] || p.Images?.[0]).startsWith('http') ? (p.images?.[0] || p.Images?.[0]) : `http://localhost:5000/${(p.images?.[0] || p.Images?.[0])}`)
                 : ''
           }));
           setPets(normalized);
