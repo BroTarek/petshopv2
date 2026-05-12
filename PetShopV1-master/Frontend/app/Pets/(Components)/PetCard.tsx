@@ -83,7 +83,7 @@ const PetCard = ({ Props }: PetCardProps) => {
                     <img 
                         alt={Props.image.alt || Props.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        src={Props.image.url} 
+                        src={Props.image.url.startsWith('http') ? Props.image.url : `http://localhost:5000/${Props.image.url}`} 
                     />
                 ) : (
                     <span className="text-slate-400">No Image</span>

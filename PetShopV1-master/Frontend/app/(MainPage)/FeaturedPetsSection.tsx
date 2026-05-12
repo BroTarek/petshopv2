@@ -17,15 +17,22 @@ const FeaturedPetsSection = () => {
       .catch(() => {});
   }, []);
 
-  const mapPet = (p: any) => ({
-    id: p.PetId || p.petId || p.Id || p.id,
-    name: p.Name || p.name,
-    image: { url: p.PrimaryImage || p.primaryImage || '' },
-    tag: p.Breed || p.Type,
-    age: p.Age,
-    status: p.Status,
-    description: p.Description
-  });
+  const mapPet = (p: any) => {
+    const rawImage = p.PrimaryImage || p.primaryImage || '';
+    const imageUrl = rawImage 
+      ? (rawImage.startsWith('http') ? rawImage : `http://localhost:5000/${rawImage}`)
+      : 'https://placehold.co/600x400/e2e8f0/64748b?text=No+Photo';
+
+    return {
+      id: p.PetId || p.petId || p.Id || p.id,
+      name: p.Name || p.name,
+      image: { url: imageUrl },
+      tag: p.Breed || p.Type || 'Companion',
+      age: p.Age || 0,
+      status: p.Status || 'Available',
+      description: p.Description || "A wonderful companion waiting for a home."
+    };
+  };
   return (
      <section className="bg-surface-container-low rounded-t-lg px-6 md:px-12 py-32">
             <div className="max-w-screen-2xl mx-auto">
