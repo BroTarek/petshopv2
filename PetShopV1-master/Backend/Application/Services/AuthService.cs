@@ -35,7 +35,7 @@ public class AuthService
             Email = request.Email,
             Password = HashPassword(request.Password),
             Role = request.Role,
-            AccountStatus = AccountStatus.Approved, // Auto-approve for easier testing during dev
+            AccountStatus = AccountStatus.Pending,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

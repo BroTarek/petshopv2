@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using PetShop.BackendV2.Application.Services;
 using PetShop.BackendV2.Domain.Entities.ViewModels;
 using PetShop.BackendV2.Application.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using PetShop.BackendV2.Domain.Enums;
-
 namespace PetShop.BackendV2.API.Controllers;
 
 [ApiController]
@@ -139,6 +139,7 @@ public class UserController : ControllerBase
     /// <summary>
     /// Get all users (Admin only)
     /// </summary>
+    [Authorize(Roles = "Admin")]
     [HttpGet("all")]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -173,6 +174,7 @@ public class UserController : ControllerBase
     /// <summary>
     /// Get users by role
     /// </summary>
+    [Authorize(Roles = "Admin")]
     [HttpGet("role/{role}")]
     public async Task<IActionResult> GetUsersByRole(string role)
     {
@@ -211,6 +213,7 @@ public class UserController : ControllerBase
     /// <summary>
     /// Get all pending users (Admin only)
     /// </summary>
+    [Authorize(Roles = "Admin")]
     [HttpGet("pending")]
     public async Task<IActionResult> GetAllPendingUsers()
     {
@@ -245,16 +248,13 @@ public class UserController : ControllerBase
     /// <summary>
     /// Activate user account (Admin only)
     /// </summary>
+    [Authorize(Roles = "Admin")]
     [HttpPut("{userId}/activate")]
     public async Task<IActionResult> ActivateUser(string userId)
     {
         try
         {
-            var user = await _userService.GetUserByIdAsync(userId);
-            if (user != null) {
-                user.AccountStatus = AccountStatus.Approved;
-                user = await _userService.UpdateUserProfileAsync(userId, new UpdateUserProfileRequest { }); // Wait, actually I'll just change UserService
-            }
+            var user = await _userService.UpdateUserStatusAsync(userId, AccountStatus.Approved);
             
             return Ok(new
             {
@@ -277,16 +277,13 @@ public class UserController : ControllerBase
     /// <summary>
     /// Deactivate user account (Admin only)
     /// </summary>
+    [Authorize(Roles = "Admin")]
     [HttpPut("{userId}/deactivate")]
     public async Task<IActionResult> DeactivateUser(string userId)
     {
         try
         {
-            var user = await _userService.GetUserByIdAsync(userId);
-            if (user != null) {
-                user.AccountStatus = AccountStatus.Rejected;
-                user = await _userService.UpdateUserProfileAsync(userId, new UpdateUserProfileRequest { });
-            }
+            var user = await _userService.UpdateUserStatusAsync(userId, AccountStatus.Suspended); // Or Rejected
             
             return Ok(new
             {

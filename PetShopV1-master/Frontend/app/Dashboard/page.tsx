@@ -10,16 +10,17 @@ interface AdoptionUpdate {
   receiverName: string; status: string; updateType: string; message: string; requestDate: string;
 }
 
-// ── Admin Panel ────────────────────────────────────────────────────────────────
+// --- Admin Panel ---
 function AdminPanel() {
   const [tab, setTab] = useState<'users' | 'posts' | 'stats'>('stats');
-  const [pendingUsers, setPendingUsers] = useState<any[]>([]);
+  const [userSubTab, setUserSubTab] = useState<'pending' | 'all'>('pending');
+  const [users, setUsers] = useState<any[]>([]);
   const [pendingPosts, setPendingPosts] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const load = async (t: typeof tab) => {
+  const load = async (t: typeof tab, ust: typeof userSubTab = userSubTab) => {
     setLoading(true);
     try {
       if (t === 'stats') {
@@ -28,9 +29,10 @@ function AdminPanel() {
           setStats(r.data.statistics || r.data.Statistics);
         }
       } else if (t === 'users') {
-        const r = await api.get('/admin/users/pending');
+        const endpoint = ust === 'pending' ? '/User/pending' : '/User/all';
+        const r = await api.get(endpoint);
         if (r.data.success || r.data.Success) {
-          setPendingUsers(r.data.users || r.data.Users || []);
+          setUsers(r.data.users || r.data.Users || []);
         }
       } else {
         const r = await api.get('/admin/posts/pending');
@@ -43,22 +45,28 @@ function AdminPanel() {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { load(tab); }, [tab]);
+  useEffect(() => { load(tab, userSubTab); }, [tab, userSubTab]);
 
-  const userAction = async (userId: string, action: 'approve' | 'reject' | 'delete') => {
-    if (action === 'delete' || action === 'reject') {
+  const userAction = async (userId: string, action: 'activate' | 'deactivate' | 'delete') => {
+    if (action === 'delete' || action === 'deactivate') {
       if (!confirm(`Are you sure you want to ${action} this user?`)) return;
     }
     
     setActionLoading(`${userId}-${action}`);
     try {
       if (action === 'delete') {
-        await api.delete(`/admin/users/${userId}`);
+        await api.delete(`/User/${userId}`);
       } else {
-        await api.put(`/admin/users/${userId}/${action}`);
+        await api.put(`/User/${userId}/${action}`);
       }
-      setPendingUsers(u => u.filter(x => x.userId !== userId));
-      // Refresh stats if we approved/rejected
+      
+      // Local update to reflect changes immediately
+      if (userSubTab === 'pending' && action === 'activate') {
+        setUsers(u => u.filter(x => x.userId !== userId));
+      } else {
+        load('users', userSubTab); // Full refresh for 'all' tab or deactivations
+      }
+      
       if (tab === 'stats') load('stats');
     } catch (err: any) {
       alert(err.response?.data?.Error || `Failed to ${action} user.`);
@@ -78,7 +86,6 @@ function AdminPanel() {
         await api.put(`/admin/posts/${postId}/${action}`);
       }
       setPendingPosts(p => p.filter(x => x.postId !== postId));
-      // Refresh stats if we approved/rejected
       if (tab === 'stats') load('stats');
     } catch (err: any) {
       alert(err.response?.data?.Error || `Failed to ${action} post.`);
@@ -97,17 +104,17 @@ function AdminPanel() {
 
   return (
     <div className="mt-12 bg-slate-50 rounded-3xl border border-slate-200 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-6 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-8 py-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+          <div className="bg-white/10 p-2 rounded-lg backdrop-blur-sm border border-white/10">
             <span className="material-symbols-outlined text-white text-2xl">admin_panel_settings</span>
           </div>
           <div>
-            <h2 className="font-bold text-white text-xl tracking-tight">Administrative Command Center</h2>
-            <p className="text-amber-100 text-xs font-medium opacity-80 uppercase tracking-widest">Global Management & Oversight</p>
+            <h2 className="font-bold text-white text-xl tracking-tight">System Control Tower</h2>
+            <p className="text-slate-400 text-xs font-medium opacity-80 uppercase tracking-widest">Global Management Console</p>
           </div>
         </div>
-        <button onClick={() => load(tab)} className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors text-white">
+        <button onClick={() => load(tab)} className="bg-white/5 hover:bg-white/10 p-2 rounded-full transition-colors text-white border border-white/5">
           <span className={`material-symbols-outlined ${loading ? 'animate-spin' : ''}`}>refresh</span>
         </button>
       </div>
@@ -118,7 +125,7 @@ function AdminPanel() {
             <button key={k} onClick={() => setTab(k)}
               className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
                 tab === k 
-                ? 'bg-white text-slate-800 shadow-sm' 
+                ? 'bg-white text-slate-800 shadow-sm border border-slate-200' 
                 : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
               }`}>
               {k.charAt(0).toUpperCase() + k.slice(1)}
@@ -126,72 +133,94 @@ function AdminPanel() {
           ))}
         </div>
 
-        {loading && !stats && !pendingUsers.length && !pendingPosts.length ? (
+        {loading && !stats && !users.length && !pendingPosts.length ? (
           <div className="py-20 text-center">
-            <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-400 font-medium">Synchronizing data...</p>
+            <div className="w-12 h-12 border-4 border-slate-800 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-400 font-medium">Fetching secure data...</p>
           </div>
         ) : (
           <div className="min-h-[400px]">
             {tab === 'stats' && stats && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in zoom-in-95 duration-500">
-                <StatCard title="Total Users" value={stats.totalUsers} icon="group" color="bg-blue-500" />
-                <StatCard title="Total Pets" value={stats.totalPets} icon="pets" color="bg-green-500" />
-                <StatCard title="Total Posts" value={stats.totalPosts} icon="article" color="bg-purple-500" />
+                <StatCard title="Total Users" value={stats.totalUsers} icon="group" color="bg-indigo-500" />
+                <StatCard title="Total Pets" value={stats.totalPets} icon="pets" color="bg-teal-500" />
+                <StatCard title="Total Posts" value={stats.totalPosts} icon="article" color="bg-violet-500" />
                 <StatCard title="Pending Users" value={stats.pendingUsers} icon="person_add" color="bg-amber-500" />
-                <StatCard title="Pending Posts" value={stats.pendingPosts} icon="pending_actions" color="bg-orange-500" />
-                <StatCard title="Approved Pets" value={stats.approvedPets} icon="check_circle" color="bg-emerald-500" />
               </div>
             )}
 
             {tab === 'users' && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
-                {pendingUsers.length === 0 ? (
+              <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-500">
+                <div className="flex gap-4 border-b border-slate-200 pb-2 mb-4">
+                  {(['pending', 'all'] as const).map(ut => (
+                    <button key={ut} onClick={() => setUserSubTab(ut)} 
+                      className={`text-xs font-black uppercase tracking-widest pb-2 transition-all ${userSubTab === ut ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>
+                      {ut === 'pending' ? 'Pending Approval' : 'All Users'}
+                    </button>
+                  ))}
+                </div>
+
+                {users.length === 0 ? (
                   <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-                    <span className="material-symbols-outlined text-5xl text-slate-200 mb-2">person_off</span>
-                    <p className="text-slate-400 font-medium">No pending user registrations</p>
+                    <span className="material-symbols-outlined text-5xl text-slate-200 mb-2">person_search</span>
+                    <p className="text-slate-400 font-medium">No {userSubTab} users found</p>
                   </div>
                 ) : (
-                  pendingUsers.map(u => (
-                    <div key={u.userId} className="group flex flex-col md:flex-row items-start md:items-center justify-between bg-white rounded-2xl p-5 border border-slate-100 hover:border-amber-200 hover:shadow-md transition-all duration-300">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold group-hover:bg-amber-50 group-hover:text-amber-500 transition-colors">
-                          {u.firstName[0]}{u.lastName[0]}
+                  <div className="grid gap-4">
+                    {users.map(u => (
+                      <div key={u.userId} className="group flex flex-col md:flex-row items-start md:items-center justify-between bg-white rounded-2xl p-5 border border-slate-100 hover:border-slate-300 hover:shadow-md transition-all duration-300">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-colors ${
+                            u.accountStatus === 'Approved' ? 'bg-emerald-50 text-emerald-600' : 
+                            u.accountStatus === 'Pending' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-400'
+                          }`}>
+                            {u.firstName[0]}{u.lastName[0]}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-800 flex items-center gap-2">
+                              {u.firstName} {u.lastName}
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                                u.accountStatus === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 
+                                u.accountStatus === 'Pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                              }`}>
+                                {u.accountStatus}
+                              </span>
+                            </p>
+                            <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-[14px]">mail</span> {u.email}
+                              <span className="text-slate-300">|</span>
+                              <span className="font-black uppercase tracking-wider text-[10px] text-slate-400">{u.role}</span>
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-bold text-slate-800">{u.firstName} {u.lastName}</p>
-                          <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[14px]">mail</span> {u.email}
-                            <span className="text-slate-300">|</span>
-                            <span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">{u.role}</span>
-                          </p>
-                          <p className="text-[10px] text-slate-400 mt-1 italic">Joined {new Date(u.createdAt).toLocaleDateString()}</p>
+                        <div className="flex gap-2 mt-4 md:mt-0 w-full md:w-auto">
+                          {u.accountStatus !== 'Approved' ? (
+                            <button 
+                              onClick={() => userAction(u.userId, 'activate')} 
+                              disabled={actionLoading === `${u.userId}-activate`}
+                              className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-emerald-600 text-white px-4 py-2.5 rounded-xl hover:bg-emerald-700 transition-all disabled:opacity-50">
+                              {actionLoading === `${u.userId}-activate` ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <span className="material-symbols-outlined text-[16px]">how_to_reg</span>}
+                              Activate
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => userAction(u.userId, 'deactivate')} 
+                              disabled={actionLoading === `${u.userId}-deactivate`}
+                              className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-amber-500 text-white px-4 py-2.5 rounded-xl hover:bg-amber-600 transition-all disabled:opacity-50">
+                              {actionLoading === `${u.userId}-deactivate` ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <span className="material-symbols-outlined text-[16px]">block</span>}
+                              Deactivate
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => userAction(u.userId, 'delete')} 
+                            disabled={actionLoading === `${u.userId}-delete`}
+                            className="p-2.5 rounded-xl bg-slate-100 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all">
+                            <span className="material-symbols-outlined text-[20px]">delete</span>
+                          </button>
                         </div>
                       </div>
-                      <div className="flex gap-2 mt-4 md:mt-0 w-full md:w-auto">
-                        <button 
-                          onClick={() => userAction(u.userId, 'approve')} 
-                          disabled={actionLoading === `${u.userId}-approve`}
-                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-emerald-600 text-white px-4 py-2.5 rounded-xl hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50">
-                          {actionLoading === `${u.userId}-approve` ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <span className="material-symbols-outlined text-[16px]">check</span>}
-                          Approve
-                        </button>
-                        <button 
-                          onClick={() => userAction(u.userId, 'reject')} 
-                          disabled={actionLoading === `${u.userId}-reject`}
-                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-rose-500 text-white px-4 py-2.5 rounded-xl hover:bg-rose-600 active:scale-95 transition-all disabled:opacity-50">
-                          {actionLoading === `${u.userId}-reject` ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <span className="material-symbols-outlined text-[16px]">close</span>}
-                          Reject
-                        </button>
-                        <button 
-                          onClick={() => userAction(u.userId, 'delete')} 
-                          disabled={actionLoading === `${u.userId}-delete`}
-                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-slate-100 text-slate-600 px-4 py-2.5 rounded-xl hover:bg-slate-200 hover:text-rose-600 active:scale-95 transition-all disabled:opacity-50">
-                          <span className="material-symbols-outlined text-[16px]">delete</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 )}
               </div>
             )}
@@ -205,41 +234,32 @@ function AdminPanel() {
                   </div>
                 ) : (
                   pendingPosts.map(p => (
-                    <div key={p.postId} className="group flex flex-col md:flex-row items-start md:items-center justify-between bg-white rounded-2xl p-5 border border-slate-100 hover:border-amber-200 hover:shadow-md transition-all duration-300">
+                    <div key={p.postId} className="group flex flex-col md:flex-row items-start md:items-center justify-between bg-white rounded-2xl p-5 border border-slate-100 hover:border-slate-300 hover:shadow-md transition-all duration-300">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-amber-50 group-hover:text-amber-500 transition-colors">
+                        <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-blue-500 transition-colors">
                           <span className="material-symbols-outlined text-3xl">description</span>
                         </div>
                         <div>
                           <p className="font-bold text-slate-800">{p.title}</p>
                           <p className="text-xs text-slate-500 flex items-center gap-1.5">
                             <span className="font-bold text-slate-700">{p.ownerName}</span>
-                            <span className="text-slate-300">·</span>
+                            <span className="text-slate-300">.</span>
                             <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">pets</span> {p.petType}</span>
                           </p>
-                          <p className="text-[10px] text-slate-400 mt-1">Submitted {new Date(p.creationDate).toLocaleDateString()}</p>
                         </div>
                       </div>
                       <div className="flex gap-2 mt-4 md:mt-0 w-full md:w-auto">
                         <button 
                           onClick={() => postAction(p.postId, 'approve')} 
                           disabled={actionLoading === `${p.postId}-approve`}
-                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-emerald-600 text-white px-4 py-2.5 rounded-xl hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50">
-                          {actionLoading === `${p.postId}-approve` ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <span className="material-symbols-outlined text-[16px]">check</span>}
+                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-emerald-600 text-white px-4 py-2.5 rounded-xl hover:bg-emerald-700 transition-all disabled:opacity-50">
                           Approve
                         </button>
                         <button 
                           onClick={() => postAction(p.postId, 'reject')} 
                           disabled={actionLoading === `${p.postId}-reject`}
-                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-rose-500 text-white px-4 py-2.5 rounded-xl hover:bg-rose-600 active:scale-95 transition-all disabled:opacity-50">
-                          {actionLoading === `${p.postId}-reject` ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <span className="material-symbols-outlined text-[16px]">close</span>}
+                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-rose-500 text-white px-4 py-2.5 rounded-xl hover:bg-rose-600 transition-all disabled:opacity-50">
                           Reject
-                        </button>
-                        <button 
-                          onClick={() => postAction(p.postId, 'delete')} 
-                          disabled={actionLoading === `${p.postId}-delete`}
-                          className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-slate-100 text-slate-600 px-4 py-2.5 rounded-xl hover:bg-slate-200 hover:text-rose-600 active:scale-95 transition-all disabled:opacity-50">
-                          <span className="material-symbols-outlined text-[16px]">delete</span>
                         </button>
                       </div>
                     </div>
@@ -254,7 +274,7 @@ function AdminPanel() {
   );
 }
 
-// ── Main Dashboard ─────────────────────────────────────────────────────────────
+// --- Main Dashboard -------------------------------------------------------------
 export default function DashboardPage() {
   const router = useRouter();
   const [connection, setConnection] = useState<HubConnection | null>(null);
@@ -556,7 +576,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Admin Panel — only for admins */}
+      {/* Admin Panel - only for admins */}
       {isAdmin && <AdminPanel />}
     </div>
   );
