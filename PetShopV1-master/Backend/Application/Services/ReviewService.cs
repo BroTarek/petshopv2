@@ -20,10 +20,14 @@ public class ReviewService
 
   public async Task<Review> CreateReviewAsync(CreateReviewRequest request)
 {
-    // Validate reviewer exists
-    var reviewer = await _userRepository.GetByIdAsync(request.ReviewerId);
+    // Validate reviewer exists and check for pet ownership constraint
+    var reviewer = await _userRepository.GetUserWithPetsAsync(request.ReviewerId);
     if (reviewer == null)
         throw new KeyNotFoundException($"Reviewer with ID {request.ReviewerId} not found");
+
+    // ✅ Constraint: Reviewer must have at least one pet
+    if (reviewer.Pets == null || reviewer.Pets.Count == 0)
+        throw new InvalidOperationException("You must have at least one pet to leave a review.");
 
     // Validate reviewee exists
     var reviewee = await _userRepository.GetByIdAsync(request.RevieweeId);
@@ -39,7 +43,7 @@ public class ReviewService
         request.ReviewerId, request.RevieweeId);
     
     if (existingReview != null)
-        throw new InvalidOperationException("You have already reviewed this user");
+        throw new InvalidOperationException("Duplicate: You have already reviewed this user.");
 
     // Validate rating
     if (request.Rating < 1 || request.Rating > 5)

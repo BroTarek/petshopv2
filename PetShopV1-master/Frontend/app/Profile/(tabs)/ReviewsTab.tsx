@@ -12,22 +12,53 @@ export default function ReviewsTab({ userId }: { userId: string }) {
   const [form, setForm] = useState({ revieweeId: '', content: '', rating: 5 });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [userHasPets, setUserHasPets] = useState(false);
 
   const load = () => {
     if (!userId) return;
     setLoading(true);
+    
+    // Check pet ownership
+    api.get(`/User/${userId}/profile`)
+      .then(r => {
+        if (r.data.Success || r.data.success) {
+          const prof = r.data.Profile || r.data.profile;
+          const petCount = prof?.TotalPets ?? prof?.totalPets ?? 0;
+          
+          if (petCount > 0) {
+            setUserHasPets(true);
+          } else {
+            api.get(`/Pet/owner/${userId}`)
+              .then(pr => {
+                const pets = pr.data.Pets || pr.data.pets || [];
+                setUserHasPets(pets.length > 0);
+              })
+              .catch(() => {});
+          }
+        }
+      })
+      .catch(() => {});
+
+    const timestamp = new Date().getTime();
     Promise.all([
-      api.get(`/Review/user/${userId}/received`).then(r => setReceived(r.data.Reviews || [])).catch(() => {}),
-      api.get(`/Review/user/${userId}/given`).then(r => setGiven(r.data.Reviews || [])).catch(() => {}),
+      api.get(`/Review/user/${userId}/received?t=${timestamp}`).then(r => setReceived(r.data.Reviews || r.data.reviews || [])).catch(() => {}),
+      api.get(`/Review/user/${userId}/given?t=${timestamp}`).then(r => setGiven(r.data.Reviews || r.data.reviews || [])).catch(() => {}),
     ]).finally(() => setLoading(false));
   };
   useEffect(load, [userId]);
 
   const submitReview = async () => {
     if (!form.revieweeId || !form.content) return alert('Fill all fields.');
+    if (!userHasPets) {
+        return alert("Constraint: You must have at least one pet registered in your profile to leave reviews.");
+    }
+
+    const payload = { ...form, reviewerId: userId, rating: form.rating };
+    console.log("Submitting Profile Review Payload:", payload);
+
     setSaving(true);
     try {
-      await api.post('/Review/create', { ...form, reviewerId: userId, rating: form.rating });
+      await api.post('/Review/create', payload);
       setShowForm(false); setForm({ revieweeId: '', content: '', rating: 5 }); load();
     } catch (e: any) { alert(e.response?.data?.Error || 'Failed to submit review.'); }
     finally { setSaving(false); }
