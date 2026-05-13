@@ -51,7 +51,7 @@ function AdminPanel() {
     if (action === 'delete' || action === 'deactivate') {
       if (!confirm(`Are you sure you want to ${action} this user?`)) return;
     }
-    
+
     setActionLoading(`${userId}-${action}`);
     try {
       if (action === 'delete') {
@@ -59,14 +59,14 @@ function AdminPanel() {
       } else {
         await api.put(`/User/${userId}/${action}`);
       }
-      
+
       // Local update to reflect changes immediately
       if (userSubTab === 'pending' && action === 'activate') {
         setUsers(u => u.filter(x => x.userId !== userId));
       } else {
         load('users', userSubTab); // Full refresh for 'all' tab or deactivations
       }
-      
+
       if (tab === 'stats') load('stats');
     } catch (err: any) {
       alert(err.response?.data?.Error || `Failed to ${action} user.`);
@@ -123,11 +123,10 @@ function AdminPanel() {
         <div className="flex gap-2 mb-8 bg-slate-200/50 p-1 rounded-2xl w-fit">
           {(['stats', 'users', 'posts'] as const).map((k) => (
             <button key={k} onClick={() => setTab(k)}
-              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
-                tab === k 
-                ? 'bg-white text-slate-800 shadow-sm border border-slate-200' 
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-              }`}>
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${tab === k
+                  ? 'bg-white text-slate-800 shadow-sm border border-slate-200'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                }`}>
               {k.charAt(0).toUpperCase() + k.slice(1)}
             </button>
           ))}
@@ -153,7 +152,7 @@ function AdminPanel() {
               <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-500">
                 <div className="flex gap-4 border-b border-slate-200 pb-2 mb-4">
                   {(['pending', 'all'] as const).map(ut => (
-                    <button key={ut} onClick={() => setUserSubTab(ut)} 
+                    <button key={ut} onClick={() => setUserSubTab(ut)}
                       className={`text-xs font-black uppercase tracking-widest pb-2 transition-all ${userSubTab === ut ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>
                       {ut === 'pending' ? 'Pending Approval' : 'All Users'}
                     </button>
@@ -170,19 +169,17 @@ function AdminPanel() {
                     {users.map(u => (
                       <div key={u.userId} className="group flex flex-col md:flex-row items-start md:items-center justify-between bg-white rounded-2xl p-5 border border-slate-100 hover:border-slate-300 hover:shadow-md transition-all duration-300">
                         <div className="flex items-center gap-4">
-                          <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-colors ${
-                            u.accountStatus === 'Approved' ? 'bg-emerald-50 text-emerald-600' : 
-                            u.accountStatus === 'Pending' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-400'
-                          }`}>
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-colors ${u.accountStatus === 'Approved' ? 'bg-emerald-50 text-emerald-600' :
+                              u.accountStatus === 'Pending' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-400'
+                            }`}>
                             {u.firstName[0]}{u.lastName[0]}
                           </div>
                           <div>
                             <p className="font-bold text-slate-800 flex items-center gap-2">
                               {u.firstName} {u.lastName}
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                                u.accountStatus === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 
-                                u.accountStatus === 'Pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                              }`}>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full ${u.accountStatus === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
+                                  u.accountStatus === 'Pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                                }`}>
                                 {u.accountStatus}
                               </span>
                             </p>
@@ -195,24 +192,24 @@ function AdminPanel() {
                         </div>
                         <div className="flex gap-2 mt-4 md:mt-0 w-full md:w-auto">
                           {u.accountStatus !== 'Approved' ? (
-                            <button 
-                              onClick={() => userAction(u.userId, 'activate')} 
+                            <button
+                              onClick={() => userAction(u.userId, 'activate')}
                               disabled={actionLoading === `${u.userId}-activate`}
                               className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-emerald-600 text-white px-4 py-2.5 rounded-xl hover:bg-emerald-700 transition-all disabled:opacity-50">
                               {actionLoading === `${u.userId}-activate` ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <span className="material-symbols-outlined text-[16px]">how_to_reg</span>}
                               Activate
                             </button>
                           ) : (
-                            <button 
-                              onClick={() => userAction(u.userId, 'deactivate')} 
+                            <button
+                              onClick={() => userAction(u.userId, 'deactivate')}
                               disabled={actionLoading === `${u.userId}-deactivate`}
                               className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-amber-500 text-white px-4 py-2.5 rounded-xl hover:bg-amber-600 transition-all disabled:opacity-50">
                               {actionLoading === `${u.userId}-deactivate` ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <span className="material-symbols-outlined text-[16px]">block</span>}
                               Deactivate
                             </button>
                           )}
-                          <button 
-                            onClick={() => userAction(u.userId, 'delete')} 
+                          <button
+                            onClick={() => userAction(u.userId, 'delete')}
                             disabled={actionLoading === `${u.userId}-delete`}
                             className="p-2.5 rounded-xl bg-slate-100 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all">
                             <span className="material-symbols-outlined text-[20px]">delete</span>
@@ -249,14 +246,14 @@ function AdminPanel() {
                         </div>
                       </div>
                       <div className="flex gap-2 mt-4 md:mt-0 w-full md:w-auto">
-                        <button 
-                          onClick={() => postAction(p.postId, 'approve')} 
+                        <button
+                          onClick={() => postAction(p.postId, 'approve')}
                           disabled={actionLoading === `${p.postId}-approve`}
                           className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-emerald-600 text-white px-4 py-2.5 rounded-xl hover:bg-emerald-700 transition-all disabled:opacity-50">
                           Approve
                         </button>
-                        <button 
-                          onClick={() => postAction(p.postId, 'reject')} 
+                        <button
+                          onClick={() => postAction(p.postId, 'reject')}
                           disabled={actionLoading === `${p.postId}-reject`}
                           className="flex-1 md:flex-none flex items-center justify-center gap-1 text-xs font-bold bg-rose-500 text-white px-4 py-2.5 rounded-xl hover:bg-rose-600 transition-all disabled:opacity-50">
                           Reject
@@ -382,47 +379,47 @@ export default function DashboardPage() {
     });
 
     setStatus('connecting');
-    conn.start()
-      .then(() => { 
+    const startPromise = conn.start()
+      .then(() => {
         if (isMounted) {
-          setStatus('connected'); 
-          addLog('🟢 SignalR: Connected', 'success'); 
+          setStatus('connected');
+          addLog('🟢 SignalR: Connected', 'success');
         }
       })
-      .catch(err => { 
+      .catch(err => {
         if (isMounted) {
-          setStatus('error'); 
+          setStatus('error');
           addLog(`🔴 SignalR: Offline (Updates via refresh only)`, 'warning');
         }
       });
 
     setConnection(conn);
-    return () => { 
+    return () => {
       isMounted = false;
-      conn.stop().catch(() => {}); // Safely stop without throwing
+      startPromise.then(() => conn.stop().catch(() => { })); // Safely stop without throwing
     };
   }, [router]);
 
   const handleAction = async (path: string, method = 'POST', body?: any) => {
     try {
       const fullPath = `/Adoption/${path}`;
-      const response = method === 'PUT' 
+      const response = method === 'PUT'
         ? await api.put(fullPath, body)
         : await api.post(fullPath, body);
-      
+
       const result = response.data;
       addLog(`🚀 Success: ${result.Message || result.message || 'Action completed'}`, 'success');
       if (result.RequestId || result.requestId) setRequestId(result.RequestId || result.requestId);
-      
+
       // Refresh request lists
       const userStr = localStorage.getItem('user');
       if (userStr) {
         const u = JSON.parse(userStr);
         fetchRequests(u.userId || u.UserId || u.Id || u.id);
       }
-    } catch (err: any) { 
+    } catch (err: any) {
       const msg = err.response?.data?.Error || err.response?.data?.error || err.message || 'Action failed';
-      addLog(`🚨 Failed: ${msg}`, 'error'); 
+      addLog(`🚨 Failed: ${msg}`, 'error');
     }
   };
 
@@ -441,9 +438,8 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-extrabold text-slate-800 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Adoption Dashboard</h1>
           <p className="text-slate-500 text-sm mt-1">Real-time status of your adoption requests.</p>
         </div>
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold uppercase ${
-          status === 'connected' ? 'bg-green-100 text-green-700' : status === 'connecting' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-        }`}>
+        <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold uppercase ${status === 'connected' ? 'bg-green-100 text-green-700' : status === 'connecting' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+          }`}>
           <div className={`w-2 h-2 rounded-full ${status === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
           {status}
         </div>
@@ -511,12 +507,12 @@ export default function DashboardPage() {
               {logs.length === 0
                 ? <div className="text-slate-500 h-full flex flex-col items-center justify-center gap-3"><div className="w-10 h-10 rounded-full border-t-2 border-slate-600 animate-spin" /><p>Listening for adoption events...</p></div>
                 : <div className="space-y-3">
-                    {logs.map(log => {
-                      const c = log.type === 'success' ? 'text-green-400' : log.type === 'error' ? 'text-red-400' : log.type === 'warning' ? 'text-yellow-400' : log.type === 'incoming' ? 'text-purple-400' : log.type === 'outgoing' ? 'text-cyan-400' : 'text-blue-400';
-                      return <div key={log.id} className="flex gap-4 p-2 hover:bg-slate-800/50 rounded"><span className="text-slate-500 shrink-0">[{log.time}]</span><span className={c}>{log.msg}</span></div>;
-                    })}
-                    <div ref={logEndRef} />
-                  </div>
+                  {logs.map(log => {
+                    const c = log.type === 'success' ? 'text-green-400' : log.type === 'error' ? 'text-red-400' : log.type === 'warning' ? 'text-yellow-400' : log.type === 'incoming' ? 'text-purple-400' : log.type === 'outgoing' ? 'text-cyan-400' : 'text-blue-400';
+                    return <div key={log.id} className="flex gap-4 p-2 hover:bg-slate-800/50 rounded"><span className="text-slate-500 shrink-0">[{log.time}]</span><span className={c}>{log.msg}</span></div>;
+                  })}
+                  <div ref={logEndRef} />
+                </div>
               }
             </div>
           </div>
@@ -532,27 +528,26 @@ export default function DashboardPage() {
           </h3>
           {reqLoading ? <div className="py-4 text-center text-slate-400">Loading...</div> :
             sentRequests.length === 0 ? <div className="py-4 text-center text-slate-400 text-sm italic">No sent requests.</div> :
-            <div className="space-y-3">
-              {sentRequests.map(req => (
-                <div key={req.requestId} className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex justify-between items-center">
-                  <div>
-                    <p className="font-bold text-slate-700 text-sm">{req.petName}</p>
-                    <p className="text-[10px] text-slate-500">To: {req.receiverName}</p>
+              <div className="space-y-3">
+                {sentRequests.map(req => (
+                  <div key={req.requestId} className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-slate-700 text-sm">{req.petName}</p>
+                      <p className="text-[10px] text-slate-500">To: {req.receiverName}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${(req.status === 'Accepted' || req.status === 'Approved') ? 'bg-green-100 text-green-700' :
+                          req.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                            req.status === 'Cancelled' ? 'bg-slate-100 text-slate-500' :
+                              'bg-amber-100 text-amber-700'
+                        }`}>
+                        {req.status}
+                      </span>
+                      <button onClick={() => { setRequestId(req.requestId); joinGroup(); }} className="text-[10px] text-blue-600 hover:underline">Track Live</button>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
-                      (req.status === 'Accepted' || req.status === 'Approved') ? 'bg-green-100 text-green-700' : 
-                      req.status === 'Rejected' ? 'bg-red-100 text-red-700' : 
-                      req.status === 'Cancelled' ? 'bg-slate-100 text-slate-500' : 
-                      'bg-amber-100 text-amber-700'
-                    }`}>
-                      {req.status}
-                    </span>
-                    <button onClick={() => { setRequestId(req.requestId); joinGroup(); }} className="text-[10px] text-blue-600 hover:underline">Track Live</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
           }
         </div>
 
@@ -563,27 +558,26 @@ export default function DashboardPage() {
           </h3>
           {reqLoading ? <div className="py-4 text-center text-slate-400">Loading...</div> :
             receivedRequests.length === 0 ? <div className="py-4 text-center text-slate-400 text-sm italic">No received requests.</div> :
-            <div className="space-y-3">
-              {receivedRequests.map(req => (
-                <div key={req.requestId} className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex justify-between items-center">
-                  <div>
-                    <p className="font-bold text-slate-700 text-sm">{req.petName}</p>
-                    <p className="text-[10px] text-slate-500">From: {req.initiatorName}</p>
+              <div className="space-y-3">
+                {receivedRequests.map(req => (
+                  <div key={req.requestId} className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-slate-700 text-sm">{req.petName}</p>
+                      <p className="text-[10px] text-slate-500">From: {req.initiatorName}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${(req.status === 'Accepted' || req.status === 'Approved') ? 'bg-green-100 text-green-700' :
+                          req.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                            req.status === 'Cancelled' ? 'bg-slate-100 text-slate-500' :
+                              'bg-amber-100 text-amber-700'
+                        }`}>
+                        {req.status}
+                      </span>
+                      <button onClick={() => { setRequestId(req.requestId); joinGroup(); }} className="text-[10px] text-blue-600 hover:underline">Manage Live</button>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
-                      (req.status === 'Accepted' || req.status === 'Approved') ? 'bg-green-100 text-green-700' : 
-                      req.status === 'Rejected' ? 'bg-red-100 text-red-700' : 
-                      req.status === 'Cancelled' ? 'bg-slate-100 text-slate-500' : 
-                      'bg-amber-100 text-amber-700'
-                    }`}>
-                      {req.status}
-                    </span>
-                    <button onClick={() => { setRequestId(req.requestId); joinGroup(); }} className="text-[10px] text-blue-600 hover:underline">Manage Live</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
           }
         </div>
       </div>
