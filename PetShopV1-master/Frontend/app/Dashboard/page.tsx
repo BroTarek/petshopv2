@@ -365,7 +365,10 @@ export default function DashboardPage() {
     ];
     events.forEach(([evt, prefix, type]) => {
       conn.on(evt, (data: AdoptionUpdate) => {
-        if (isMounted) addLog(`${prefix} ${data.message}`, type);
+        if (isMounted) {
+          addLog(`${prefix} ${data.message}`, type);
+          fetchRequests(uid);
+        }
       });
     });
 
@@ -485,7 +488,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="lg:col-span-2">
+        {/* <div className="lg:col-span-2">
           <div className="bg-slate-900 rounded-2xl shadow-xl overflow-hidden border border-slate-800 flex flex-col h-[400px]">
             <div className="bg-slate-800 px-4 py-2 flex items-center justify-between">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">terminal</span>
@@ -508,7 +511,7 @@ export default function DashboardPage() {
               }
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Adoption Request History Section */}

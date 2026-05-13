@@ -38,7 +38,7 @@ const TopNavBar = () => {
     { label: 'Home', href: '/' },
     { label: 'Pets', href: '/Pets' },
     { label: 'Posts', href: '/Posts' },
-    { label: 'Adoptions', href: '/Dashboard' },
+    { label: 'Dashboard', href: '/Dashboard' },
     { label: 'Favourites', href: '/Favourites' },
     { label: 'Profile', href: '/Profile' },
     ...(user?.Role === 'Admin' || user?.role === 'Admin'

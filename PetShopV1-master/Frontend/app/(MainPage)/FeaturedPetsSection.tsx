@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import PetCard from '../Pets/(Components)/PetCard';
 import api from '@/utils/axios';
 
@@ -12,7 +13,7 @@ const FeaturedPetsSection = () => {
         console.log(r)
         const ok = r.data.Success || r.data.success;
         const pts = r.data.Pets || r.data.pets;
-        if (ok) setPets((pts || []).slice(0, 3));
+        if (ok) setPets(pts || []);
       })
       .catch(() => {});
   }, []);
@@ -43,13 +44,13 @@ const FeaturedPetsSection = () => {
                         <p className="text-lg text-on-surface-variant">Every pet has a story. We help you find the one that
                             perfectly aligns with your lifestyle and home.</p>
                     </div>
-                    <button
+                    <Link href="/Pets"
                         className="flex items-center gap-2 font-bold text-primary border-b-2 border-secondary-fixed hover:bg-secondary-fixed/20 px-4 py-2 transition-all">
                         View All Pets <span className="material-symbols-outlined"
                             data-icon="keyboard_arrow_right">keyboard_arrow_right</span>
-                    </button>
+                    </Link>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {pets.map(p => (
                       <PetCard key={p.PetId || p.petId || p.Id} Props={mapPet(p)} />
                     ))}
