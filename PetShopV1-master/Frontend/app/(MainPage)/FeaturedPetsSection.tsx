@@ -51,9 +51,10 @@ const FeaturedPetsSection = () => {
                     </Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {pets.map(p => (
-                      <PetCard key={p.PetId || p.petId || p.Id} Props={mapPet(p)} />
-                    ))}
+                    {pets.map((p, idx) => {
+                      const mapped = mapPet(p);
+                      return <PetCard key={mapped.id || `featured-${idx}`} Props={mapped} />;
+                    })}
                     {pets.length === 0 && [1,2,3].map(i => (
                       <div key={i} className="h-80 bg-slate-100 animate-pulse rounded-xl" />
                     ))}

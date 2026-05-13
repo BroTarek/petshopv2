@@ -62,9 +62,10 @@ const RelatedPetsGrid = ({ currentPetType, currentPetId }: RelatedPetsGridProps)
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {pets.map(p => (
-                        <PetCard key={p.PetId || p.id} Props={mapPet(p)} />
-                    ))}
+                    {pets.map((p, idx) => {
+                        const mapped = mapPet(p);
+                        return <PetCard key={mapped.id || `related-${idx}`} Props={mapped} />;
+                    })}
                     {pets.length === 0 && (
                         <div className="col-span-full py-10 text-center text-slate-400">
                             No other companions found at the moment.

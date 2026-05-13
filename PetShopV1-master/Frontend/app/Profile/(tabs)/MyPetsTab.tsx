@@ -2,8 +2,13 @@
 import React, { useEffect, useState } from 'react';
 import api from '@/utils/axios';
 import Link from 'next/link';
+import { PET_TYPES, GENDERS, HEALTH_STATUSES, COMMON_BREEDS, LOCATIONS } from '@/utils/constants';
 
-type Pet = { petId: string; name: string; breed: string; type: string; age: number; status: string; primaryImage: string; };
+type Pet = { 
+  petId: string; name: string; breed: string; type: string; age: number; 
+  status: string; primaryImage: string; gender: string; location: string; 
+  healthStatus: string; description: string; 
+};
 
 export default function MyPetsTab({ userId }: { userId: string }) {
   const [pets, setPets] = useState<Pet[]>([]);
@@ -21,19 +26,33 @@ export default function MyPetsTab({ userId }: { userId: string }) {
         const ok = r.data.Success || r.data.success;
         const pts = r.data.Pets || r.data.pets || [];
         if (ok) {
-          const normalized = pts.map((p: any) => ({
-            petId: p.petId || p.PetId || p.id || p.Id,
-            name: p.name || p.Name,
-            breed: p.breed || p.Breed,
-            type: p.type || p.Type,
-            age: p.age || p.Age,
-            status: p.status || p.Status,
-            primaryImage: (p.primaryImage || p.PrimaryImage)
-              ? ((p.primaryImage || p.PrimaryImage).startsWith('http') ? (p.primaryImage || p.PrimaryImage) : `http://localhost:5000/${(p.primaryImage || p.PrimaryImage)}`)
-              : (p.images?.[0] || p.Images?.[0])
-                ? ((p.images?.[0] || p.Images?.[0]).startsWith('http') ? (p.images?.[0] || p.Images?.[0]) : `http://localhost:5000/${(p.images?.[0] || p.Images?.[0])}`)
-                : ''
-          }));
+          const normalized = pts.map((p: any) => {
+            // Helper to map string enums to values if needed
+            const mapEnum = (val: string, options: any[]) => {
+              if (!val) return '0';
+              if (!isNaN(Number(val))) return String(val);
+              const found = options.find(o => o.label.toUpperCase() === val.toUpperCase());
+              return found ? found.value : '0';
+            };
+
+            return {
+              petId: p.petId || p.PetId || p.id || p.Id,
+              name: p.name || p.Name,
+              breed: p.breed || p.Breed,
+              type: p.type || p.Type,
+              age: p.age || p.Age,
+              status: p.status || p.Status,
+              gender: mapEnum(p.gender || p.Gender, GENDERS),
+              location: p.location || p.Location || '',
+              healthStatus: mapEnum(p.healthStatus || p.HealthStatus, HEALTH_STATUSES),
+              description: p.description || p.Description || '',
+              primaryImage: (p.primaryImage || p.PrimaryImage)
+                ? ((p.primaryImage || p.PrimaryImage).startsWith('http') ? (p.primaryImage || p.PrimaryImage) : `http://localhost:5000/${(p.primaryImage || p.PrimaryImage)}`)
+                : (p.images?.[0] || p.Images?.[0])
+                  ? ((p.images?.[0] || p.Images?.[0]).startsWith('http') ? (p.images?.[0] || p.Images?.[0]) : `http://localhost:5000/${(p.images?.[0] || p.Images?.[0])}`)
+                  : ''
+            };
+          });
           setPets(normalized);
         }
       })
@@ -56,16 +75,22 @@ export default function MyPetsTab({ userId }: { userId: string }) {
       type: pet.type, 
       breed: pet.breed, 
       age: String(pet.age), 
-      gender: '0', 
-      location: '', 
-      healthStatus: '3', 
-      description: '' 
+      gender: pet.gender, 
+      location: pet.location, 
+      healthStatus: pet.healthStatus, 
+      description: pet.description 
     });
     setImages(null); 
     setShowModal(true);
   };
 
   const save = async () => {
+    // Basic validation
+    if (!form.name || !form.type || !form.breed || !form.location) {
+      alert('Please fill all required fields: Name, Type, Breed, and Location.');
+      return;
+    }
+
     setSaving(true);
     if (!editPet && (!images || images.length === 0)) {
       alert('At least one image is required for a new pet.');
@@ -88,18 +113,28 @@ export default function MyPetsTab({ userId }: { userId: string }) {
       
       if (images) Array.from(images).forEach(f => fd.append('Images', f));
       
-      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
-      
       if (editPet) {
-        await api.put(`/Pet/update/${editPet.petId}`, fd, config);
+        await api.put(`/Pet/update/${editPet.petId}`, fd);
       } else {
-        await api.post('/Pet/create', fd, config);
+        await api.post('/Pet/create', fd);
       }
       setShowModal(false); 
       load();
     } catch (e: any) { 
-      console.error('Pet save error:', e);
-      alert(e.response?.data?.Error || e.response?.data?.error || 'Failed to save pet.'); 
+      console.error('Pet save error:', e.response?.data || e);
+      const errData = e.response?.data;
+      let msg = 'Failed to save pet.';
+      
+      if (errData) {
+        if (typeof errData.errors === 'object') {
+          msg = Object.entries(errData.errors)
+            .map(([key, val]: [string, any]) => `${key}: ${Array.isArray(val) ? val.join(', ') : val}`)
+            .join('\n');
+        } else {
+          msg = errData.Error || errData.error || errData.Message || msg;
+        }
+      }
+      alert(msg); 
     }
     finally { setSaving(false); }
   };
@@ -110,7 +145,10 @@ export default function MyPetsTab({ userId }: { userId: string }) {
       await api.delete(`/Pet/delete/${petId}?ownerId=${userId}`); 
       setPets(p => p.filter(x => x.petId !== petId)); 
     }
-    catch { alert('Failed to delete.'); }
+    catch (e: any) { 
+      console.error('Delete error:', e.response?.data || e);
+      alert(e.response?.data?.Error || e.response?.data?.error || 'Failed to delete.'); 
+    }
   };
 
   if (loading) return <div className="py-12 text-center text-slate-400">Loading pets...</div>;
@@ -156,32 +194,74 @@ export default function MyPetsTab({ userId }: { userId: string }) {
               <h2 className="text-xl font-bold text-slate-800">{editPet ? 'Edit Pet' : 'Add Pet'}</h2>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600"><span className="material-symbols-outlined">close</span></button>
             </div>
-            {[['name','Name'],['type','Type (e.g. Dog)'],['breed','Breed'],['age','Age (years)'],['location','Location'],['description','Description']].map(([k, label]) => (
-              <div key={k}>
-                <label className="block text-xs font-bold text-slate-600 mb-1">{label}</label>
-                <input value={(form as any)[k]} onChange={e => setForm(f => ({...f, [k]: e.target.value}))}
-                  type={k === 'age' ? 'number' : 'text'}
-                  min={k === 'age' ? '0' : undefined}
+            {/* Basic Info */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">Name</label>
+                <input value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))}
+                  required
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 text-slate-800" />
               </div>
-            ))}
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">Age (Years)</label>
+                <input value={form.age} onChange={e => setForm(f => ({...f, age: e.target.value}))}
+                  type="number" min="0" required
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 text-slate-800" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">Type</label>
+                <select value={form.type} onChange={e => setForm(f => ({...f, type: e.target.value}))} required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none">
+                  <option value="">Select Type</option>
+                  {PET_TYPES.filter(t => t !== 'All').map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">Gender</label>
+                <select value={form.gender} onChange={e => setForm(f => ({...f, gender: e.target.value}))} required className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none">
+                  {GENDERS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+                </select>
+              </div>
+            </div>
+
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Gender</label>
-              <select value={form.gender} onChange={e => setForm(f => ({...f, gender: e.target.value}))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800">
-                <option value="0">Male</option>
-                <option value="1">Female</option>
-                <option value="2">Unknown</option>
+              <label className="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">Breed</label>
+              <div className="relative">
+                <input list="breeds" value={form.breed} onChange={e => setForm(f => ({...f, breed: e.target.value}))}
+                  placeholder="Type or select breed..." required
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 text-slate-800" />
+                <datalist id="breeds">
+                  {COMMON_BREEDS.map(b => <option key={b} value={b} />)}
+                </datalist>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">Location</label>
+              <div className="relative">
+                <input list="locations" value={form.location} onChange={e => setForm(f => ({...f, location: e.target.value}))}
+                  placeholder="Type or select location..." required
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 text-slate-800" />
+                <datalist id="locations">
+                  {LOCATIONS.map(l => <option key={l} value={l} />)}
+                </datalist>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">Health Status</label>
+              <select value={form.healthStatus} onChange={e => setForm(f => ({...f, healthStatus: e.target.value}))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none">
+                {HEALTH_STATUSES.map(h => <option key={h.value} value={h.value}>{h.label}</option>)}
               </select>
             </div>
+
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Health Status</label>
-              <select value={form.healthStatus} onChange={e => setForm(f => ({...f, healthStatus: e.target.value}))} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800">
-                <option value="3">Healthy</option>
-                <option value="0">Vaccinated</option>
-                <option value="1">Unvaccinated</option>
-                <option value="2">Sick</option>
-                <option value="4">Under Treatment</option>
-              </select>
+              <label className="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">Description</label>
+              <textarea value={form.description} onChange={e => setForm(f => ({...f, description: e.target.value}))}
+                rows={3}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 text-slate-800 resize-none" />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-tighter">Pet Gallery (Required)</label>

@@ -8,6 +8,7 @@ import PetGrid from './(Components)/PetGrid';
 import SidebarFilters from './(Components)/SidebarFilters';
 import { STAGES } from './(Components)/AgeRange';
 import api from '@/utils/axios';
+import { GENDERS, HEALTH_STATUSES } from '@/utils/constants';
 
 const mapPet = (backendPet: any) => {
   const rawImage = backendPet.PrimaryImage || backendPet.primaryImage || '';
@@ -36,14 +37,22 @@ const PetsPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState('All');
   const [selectedStage, setSelectedStage] = useState('');
+  const [selectedBreed, setSelectedBreed] = useState('');
+  const [selectedGender, setSelectedGender] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedHealth, setSelectedHealth] = useState('');
 
-  const fetchPets = useCallback(async (type: string, stage: string) => {
+  const fetchPets = useCallback(async (type: string, stage: string, breed: string, gender: string, loc: string, health: string) => {
     setLoading(true);
     try {
       const hasType = type && type !== 'All';
       const stageObj = STAGES.find(s => s.label === stage);
+      const hasBreed = breed && breed.trim() !== '';
+      const hasGender = gender && gender !== '';
+      const hasLocation = loc && loc.trim() !== '';
+      const hasHealth = health && health !== '';
 
-      if (!hasType && !stageObj) {
+      if (!hasType && !stageObj && !hasBreed && !hasGender && !hasLocation && !hasHealth) {
         // No filters — fetch available pets
         const res = await api.get('/Pet/available');
         const ok = res.data.Success || res.data.success;
@@ -57,6 +66,11 @@ const PetsPage = () => {
           body.minAge = stageObj.min;
           body.maxAge = stageObj.max;
         }
+        if (hasBreed) body.breed = breed;
+        if (hasGender) body.gender = parseInt(gender);
+        if (hasLocation) body.location = loc;
+        if (hasHealth) body.healthStatus = parseInt(health);
+
         const res = await api.post('/Pet/search', body);
         const ok = res.data.Success || res.data.success;
         const pts = res.data.Pets || res.data.pets;
@@ -70,14 +84,16 @@ const PetsPage = () => {
   }, []);
 
   useEffect(() => {
-    fetchPets(selectedType, selectedStage);
-  }, [selectedType, selectedStage, fetchPets]);
+    fetchPets(selectedType, selectedStage, selectedBreed, selectedGender, selectedLocation, selectedHealth);
+  }, [selectedType, selectedStage, selectedBreed, selectedGender, selectedLocation, selectedHealth, fetchPets]);
 
-  const handleTypeChange = (type: string) => setSelectedType(type);
-  const handleStageChange = (stage: string) => setSelectedStage(stage);
   const handleClear = () => {
     setSelectedType('All');
     setSelectedStage('');
+    setSelectedBreed('');
+    setSelectedGender('');
+    setSelectedLocation('');
+    setSelectedHealth('');
   };
 
   const mappedPets = pets.map(mapPet);
@@ -89,8 +105,16 @@ const PetsPage = () => {
         <SidebarFilters
           selectedType={selectedType}
           selectedStage={selectedStage}
-          onTypeChange={handleTypeChange}
-          onStageChange={handleStageChange}
+          selectedBreed={selectedBreed}
+          selectedGender={selectedGender}
+          selectedLocation={selectedLocation}
+          selectedHealth={selectedHealth}
+          onTypeChange={setSelectedType}
+          onStageChange={setSelectedStage}
+          onBreedChange={setSelectedBreed}
+          onGenderChange={setSelectedGender}
+          onLocationChange={setSelectedLocation}
+          onHealthChange={setSelectedHealth}
           onClear={handleClear}
         />
         <PetGrid>
@@ -98,7 +122,15 @@ const PetsPage = () => {
             <p className="text-sm text-slate-500 font-medium">
               {loading
                 ? 'Searching...'
-                : <>Showing <span className="text-blue-600 font-bold">{mappedPets.length} companions</span>{selectedType !== 'All' ? ` · ${selectedType}` : ''}{selectedStage ? ` · ${selectedStage}` : ''}</>
+                : <>
+                    Showing <span className="text-blue-600 font-bold">{mappedPets.length} companions</span>
+                    {selectedType !== 'All' && ` · ${selectedType}`}
+                    {selectedStage && ` · ${selectedStage}`}
+                    {selectedBreed && ` · ${selectedBreed}`}
+                    {selectedGender !== '' && ` · ${GENDERS.find(g => g.value === selectedGender)?.label}`}
+                    {selectedLocation && ` · ${selectedLocation}`}
+                    {selectedHealth !== '' && ` · ${HEALTH_STATUSES.find(h => h.value === selectedHealth)?.label}`}
+                  </>
               }
             </p>
           </div>

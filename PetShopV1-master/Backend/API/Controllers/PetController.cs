@@ -165,7 +165,10 @@ public class PetController : ControllerBase
                 Type = pet.Type,
                 Breed = pet.Breed,
                 Age = pet.Age,
+                Gender = pet.Gender.ToString(),
                 Location = pet.Location,
+                HealthStatus = pet.HealthStatus.ToString(),
+                Description = pet.Description,
                 PrimaryImage = pet.Images.FirstOrDefault() ?? string.Empty,
                 Status = pet.Status.ToString(),
                 OwnerName = $"{pet.Owner?.FirstName} {pet.Owner?.LastName}"
@@ -198,7 +201,10 @@ public class PetController : ControllerBase
                 Type = pet.Type,
                 Breed = pet.Breed,
                 Age = pet.Age,
+                Gender = pet.Gender.ToString(),
                 Location = pet.Location,
+                HealthStatus = pet.HealthStatus.ToString(),
+                Description = pet.Description,
                 PrimaryImage = pet.Images.FirstOrDefault() ?? string.Empty,
                 Status = pet.Status.ToString(),
                 OwnerName = $"{pet.Owner?.FirstName} {pet.Owner?.LastName}"
@@ -236,7 +242,10 @@ public class PetController : ControllerBase
                 Type = pet.Type,
                 Breed = pet.Breed,
                 Age = pet.Age,
+                Gender = pet.Gender.ToString(),
                 Location = pet.Location,
+                HealthStatus = pet.HealthStatus.ToString(),
+                Description = pet.Description,
                 PrimaryImage = pet.Images.FirstOrDefault() ?? string.Empty,
                 Status = pet.Status.ToString(),
                 OwnerName = $"{pet.Owner?.FirstName} {pet.Owner?.LastName}"
@@ -269,7 +278,10 @@ public class PetController : ControllerBase
                 Type = pet.Type,
                 Breed = pet.Breed,
                 Age = pet.Age,
+                Gender = pet.Gender.ToString(),
                 Location = pet.Location,
+                HealthStatus = pet.HealthStatus.ToString(),
+                Description = pet.Description,
                 PrimaryImage = pet.Images.FirstOrDefault() ?? string.Empty,
                 Status = pet.Status.ToString(),
                 OwnerName = $"{pet.Owner?.FirstName} {pet.Owner?.LastName}"

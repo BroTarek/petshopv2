@@ -9,10 +9,10 @@ type Props = {
 
 // Maps life stage label → [minAge, maxAge] in years
 const STAGES: { label: string; min: number; max: number }[] = [
-  { label: 'Puppy/Kitten', min: 0, max: 1 },
-  { label: 'Young Adult', min: 1, max: 3 },
-  { label: 'Mature', min: 3, max: 8 },
-  { label: 'Senior', min: 8, max: 30 },
+  { label: 'Between 0 and 1', min: 0, max: 1 },
+  { label: 'Between 1 and 3', min: 1, max: 3 },
+  { label: 'Between 3 and 8', min: 3, max: 8 },
+  { label: 'Between 8 and 30', min: 8, max: 30 },
 ];
 
 const AgeRange = ({ selectedStage, onChange }: Props) => {

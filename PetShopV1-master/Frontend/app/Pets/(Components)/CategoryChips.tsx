@@ -7,14 +7,14 @@ type Props = {
   onChange: (type: string) => void;
 };
 
-const TYPES = ['All', 'Dog', 'Cat', 'Bird', 'Rabbit', 'Other'];
+import { PET_TYPES } from '@/utils/constants';
 
 const CategoryChips = ({ selectedType, onChange }: Props) => {
   return (
     <section>
       <h4 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Pet Type</h4>
       <div className="flex flex-wrap gap-2">
-        {TYPES.map((t) => (
+        {PET_TYPES.map((t) => (
           <button
             key={t}
             onClick={() => onChange(t)}

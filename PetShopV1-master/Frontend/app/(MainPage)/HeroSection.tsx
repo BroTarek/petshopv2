@@ -14,17 +14,8 @@ const HeroSection = () => {
                     Moving beyond the pet store. Discover a curated collection of artisanal essentials and companionship
                     designed for the modern home.
                 </p>
-                <div className="flex flex-wrap gap-4">
-                    <button
-                        className="px-10 py-5 bg-primary text-on-primary rounded-xl font-bold transition-all satin-hover flex items-center gap-2">
-                        Find Your New Friend
-                        <span className="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
-                    </button>
-                    <button
-                        className="px-10 py-5 bg-surface-container-high text-on-surface rounded-xl font-bold hover:bg-surface-container-highest transition-colors">
-                        Explore Shop
-                    </button>
-                </div>
+               
+               
             </div>
             <div className="w-full md:w-1/2 relative">
                 <div className="absolute -top-12 -left-12 w-64 h-64 bg-secondary-container/30 rounded-full blur-3xl -z-10">
