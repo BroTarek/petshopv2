@@ -4,6 +4,8 @@ using PetShop.BackendV2.Domain.Entities.ViewModels;
 using PetShop.BackendV2.Application.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using PetShop.BackendV2.Domain.Enums;
+using Microsoft.AspNetCore.SignalR;
+using PetShop.BackendV2.API.Hubs;
 namespace PetShop.BackendV2.API.Controllers;
 
 [ApiController]
@@ -11,10 +13,12 @@ namespace PetShop.BackendV2.API.Controllers;
 public class UserController : ControllerBase
 {
     private readonly UserService _userService;
+    private readonly IHubContext<AdoptionHub> _hubContext;
 
-    public UserController(UserService userService)
+    public UserController(UserService userService, IHubContext<AdoptionHub> hubContext)
     {
         _userService = userService;
+        _hubContext = hubContext;
     }
 
 
@@ -284,6 +288,8 @@ public class UserController : ControllerBase
         try
         {
             var user = await _userService.UpdateUserStatusAsync(userId, AccountStatus.Suspended); // Or Rejected
+            
+            await _hubContext.Clients.User(userId).SendAsync("ForceLogout", new { message = "Your account has been deactivated by an admin." });
             
             return Ok(new
             {

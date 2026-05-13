@@ -372,6 +372,15 @@ export default function DashboardPage() {
       });
     });
 
+    conn.on('ForceLogout', (data: { message: string }) => {
+      if (isMounted) {
+        alert(data.message || 'Your account has been deactivated by an admin.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.push('/Login');
+      }
+    });
+
     setStatus('connecting');
     conn.start()
       .then(() => { 
@@ -488,7 +497,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* <div className="lg:col-span-2">
+        <div className="lg:col-span-2">
           <div className="bg-slate-900 rounded-2xl shadow-xl overflow-hidden border border-slate-800 flex flex-col h-[400px]">
             <div className="bg-slate-800 px-4 py-2 flex items-center justify-between">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">terminal</span>
@@ -511,7 +520,7 @@ export default function DashboardPage() {
               }
             </div>
           </div>
-        </div> */}
+        </div>
       </div>
 
       {/* Adoption Request History Section */}

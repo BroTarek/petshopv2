@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { HubConnectionBuilder, HttpTransportType } from '@microsoft/signalr';
 
 const TopNavBar = () => {
   const pathname = usePathname();
@@ -18,6 +19,38 @@ const TopNavBar = () => {
     window.addEventListener('storage', load);
     return () => window.removeEventListener('storage', load);
   }, [pathname]);
+
+  // Global SignalR listener for ForceLogout
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    let isMounted = true;
+    const conn = new HubConnectionBuilder()
+      .withUrl('http://localhost:5000/hubs/adoption', {
+        skipNegotiation: true,
+        transport: HttpTransportType.WebSockets,
+        accessTokenFactory: () => token
+      })
+      .withAutomaticReconnect()
+      .build();
+
+    conn.on('ForceLogout', (data: { message: string }) => {
+      if (isMounted) {
+        alert(data?.message || 'Your account has been deactivated by an admin.');
+        handleLogout();
+      }
+    });
+
+    const startPromise = conn.start().catch(err => {
+      if (isMounted) console.error('Global Hub Connection Error:', err);
+    });
+
+    return () => {
+      isMounted = false;
+      startPromise.then(() => conn.stop().catch(() => {}));
+    };
+  }, [user]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
